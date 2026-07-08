@@ -5,12 +5,23 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@SpringBootApplication
-public class Application {
+public final class Application {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+    private Application() {
     }
+
+    /**
+     * Starts the Risk Scoring Spring Boot application.
+     *
+     * @param args startup arguments
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(RiskScoringServiceConfiguration.class, args);
+    }
+}
+
+@SpringBootApplication
+class RiskScoringServiceConfiguration {
 }
 
 @RestController
