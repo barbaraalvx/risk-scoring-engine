@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: risk-scoring-service
+  kafka:
+    bootstrap-servers: kafka:9092
+  data:
+    redis:
+      host: redis
+      port: 6379
+  datasource:
+    url: jdbc:postgresql://postgres:5432/antifraude
+    username: antifraude
+    password: antifraude
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
