@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="9.3">
+<file name="/home/tobias/Documents/programming/risk-scoring-engine/services/quarantine-service/src/main/java/com/antifraude/quarantine/package-info.java">
+</file>
+<file name="/home/tobias/Documents/programming/risk-scoring-engine/services/quarantine-service/src/main/java/com/antifraude/quarantine/HealthController.java">
+</file>
+<file name="/home/tobias/Documents/programming/risk-scoring-engine/services/quarantine-service/src/main/java/com/antifraude/quarantine/Application.java">
+</file>
+</checkstyle>

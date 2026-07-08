@@ -2,22 +2,24 @@ package com.antifraude.quarantine;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Entry point of the Quarantine Service application.
+ */
 @SpringBootApplication
-public class Application {
+public final class Application {
 
-    public static void main(String[] args) {
+    /** Utility class — do not instantiate. */
+    private Application() {
+    }
+
+    /**
+     * Starts the Spring Boot application.
+     *
+     * @param args command-line arguments passed to the application
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(Application.class, args);
     }
 }
 
-@RestController
-class HealthController {
-
-    @GetMapping("/health")
-    public String health() {
-        return "quarantine-service OK";
-    }
-}
