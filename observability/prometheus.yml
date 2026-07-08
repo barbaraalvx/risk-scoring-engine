@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: "risk-scoring-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["risk-scoring-service:8081"]
+
+  - job_name: "quarantine-service"
+    metrics_path: "/actuator/prometheus"
+    static_configs:
+      - targets: ["quarantine-service:8082"]
