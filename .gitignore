@@ -1,0 +1,58 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://java.com
+hs_err_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+build-number-metadata
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle-wrapper.jar
+
+# Spring Boot
+boot-info.properties
+build-info.properties
+*.lock
+
+# IDEs (IntelliJ, Eclipse, Netbeans, VS Code)
+.idea/
+.project
+.classpath
+.settings/
+*.launch
+.metadata/
+*.iml
+*.iws
+.vscode/
+
+# Arquivos de sistema e OS
+.DS_Store
+Thumbs.db
