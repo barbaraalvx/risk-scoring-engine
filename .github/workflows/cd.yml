@@ -1,0 +1,30 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy risk-scoring-service to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_RISK_SCORING_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Secret RENDER_RISK_SCORING_DEPLOY_HOOK_URL not configured. Skipping deployment."
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Deploy quarantine-service to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_QUARANTINE_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Secret RENDER_QUARANTINE_DEPLOY_HOOK_URL not configured. Skipping deployment."
+            exit 0
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
