@@ -10,9 +10,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+
 import org.junit.jupiter.api.Test;
 
 class GameEventTest {
+
+    // Valida as anotações Bean Validation aplicadas no record.
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Test
     void shouldNormalizePayloadAndProtectInternalState() {
@@ -28,6 +34,7 @@ class GameEventTest {
 
         assertEquals(1, gameEvent.payload().size());
         assertEquals(150.75, gameEvent.payload().get("amount"));
+        // O payload interno não deve aceitar mutação direta.
         assertThrows(UnsupportedOperationException.class, () -> gameEvent.payload().put("currency", "BRL"));
 
         payload.put("currency", "BRL");
@@ -63,5 +70,18 @@ class GameEventTest {
         GameEvent normalized = gameEvent.withGeneratedEventId();
 
         assertEquals(eventId, normalized.eventId());
+    }
+
+    @Test
+    void shouldEnforceBeanValidationOnRequiredFields() {
+        // Campos obrigatórios vazios ou nulos devem gerar violações.
+        GameEvent gameEvent = new GameEvent(
+                null,
+                "",
+                null,
+                null,
+                Map.of());
+
+        assertFalse(validator.validate(gameEvent).isEmpty());
     }
 }
