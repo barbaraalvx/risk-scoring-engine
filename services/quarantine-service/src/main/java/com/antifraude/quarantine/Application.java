@@ -7,10 +7,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Entry point of the Quarantine Service application.
  */
 @SpringBootApplication
-public final class Application {
+public class Application {
 
     /** Utility class — do not instantiate. */
-    private Application() {
+    Application() {
     }
 
     /**
