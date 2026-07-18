@@ -1,4 +1,4 @@
-package main.java.com.antifraude.ingestion;
+package com.antifraude.ingestion;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
