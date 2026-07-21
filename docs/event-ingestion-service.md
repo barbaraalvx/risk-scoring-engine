@@ -146,3 +146,24 @@ curl -i -X POST http://localhost:8083/events \
     "eventType": "BET"
   }'
 ```
+
+## Task 3.2 - Health check `GET /actuator/health`
+
+Registra o health check padrao do Spring Actuator como parte do contrato operacional do servico.
+
+### Implementacao
+
+- O endpoint `GET /actuator/health` ja vem do `spring-boot-starter-actuator`, sem precisar de controller manual.
+- A exposicao foi liberada em `application.yml` com `management.endpoints.web.exposure.include: health,info,metrics`.
+- Como o servico e stateless, esse health check funciona apenas como sinal de prontidao e vivacidade da aplicacao.
+- O modulo `event-ingestion-service` foi documentado com comentarios no codigo nos pontos centrais do fluxo:
+  - normalizacao do `eventId` no controller
+  - publicacao no Kafka no publisher
+  - traducao de erros de validacao no handler global
+
+### Como testar
+
+```bash
+curl http://localhost:8083/actuator/health
+```
+
