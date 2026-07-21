@@ -56,3 +56,6 @@ build-info.properties
 # Arquivos de sistema e OS
 .DS_Store
 Thumbs.db
+
+#Arquivo de teste de chamada http
+test.http

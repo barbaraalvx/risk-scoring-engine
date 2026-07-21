@@ -80,3 +80,69 @@ public record GameEvent(
 ```
 
 Nesse formato, o `eventId` pode ser omitido na requisição e gerado automaticamente no servidor.
+
+## Task 3 - Endpoint de ingestao `POST /events`
+
+Esta task adiciona a porta de entrada de eventos do sistema. O endpoint recebe um `GameEvent` em JSON, valida o payload, gera `eventId` quando ausente e publica no Kafka.
+
+### Implementacao
+
+- Foi criado `EventIngestionController.java` em `src/main/java/com/antifraude/ingestion` com `POST /events`.
+- O endpoint recebe `@Valid @RequestBody GameEvent`, aplicando Bean Validation automaticamente.
+- Quando o `eventId` nao vem no payload, o servidor gera um UUID com `gameEvent.withGeneratedEventId()`.
+- Foi criado `EventPublisher.java` para rotear o evento para o Kafka usando `KafkaTemplate<String, String>`.
+- O evento e serializado em JSON com `ObjectMapper` e publicado no topico configuravel `ingestion.events-topic`.
+- Foi adicionado `ingestion.events-topic: antifraude.game-events` em `application.yml`.
+- Foi adicionado `ApiExceptionHandler.java` com tratamento global de erros de entrada:
+  - `MethodArgumentNotValidException` retorna `400 Bad Request` com lista de campos invalidos.
+  - `HttpMessageNotReadableException` retorna `400 Bad Request` para JSON malformado.
+- Foram criados os DTOs `EventAcceptedResponse` (sucesso) e `ApiErrorResponse`/`ValidationErrorDetail` (erro).
+
+### Comportamento da API
+
+- Sucesso:
+  - Retorna `202 Accepted` com o `eventId` gerado/normalizado.
+- Payload invalido:
+  - Retorna `400 Bad Request` com detalhes em `details` (campo, mensagem e valor rejeitado).
+
+### Garantia de arquitetura stateless
+
+- O `event-ingestion-service` nao persiste estado de negocio localmente.
+- O fluxo implementado e: receber -> validar -> gerar `eventId` (se necessario) -> publicar no Kafka.
+- Nenhum repositório, cache de sessao ou escrita direta em banco foi adicionado nesta task.
+- Esse desenho mantem o servico escalavel horizontalmente, com instancias fungiveis atras de balanceador.
+
+### Como testar
+
+1. Suba a stack:
+
+```bash
+docker compose up
+```
+
+2. Envie um evento valido (sem `eventId`):
+
+```bash
+curl -i -X POST http://localhost:8083/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "playerId": "player-123",
+    "eventType": "BET",
+    "timestamp": "2026-07-20T12:30:00Z",
+    "payload": {
+      "amount": 150.75,
+      "currency": "BRL"
+    }
+  }'
+```
+
+3. Valide retorno de erro com payload invalido:
+
+```bash
+curl -i -X POST http://localhost:8083/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "playerId": "",
+    "eventType": "BET"
+  }'
+```

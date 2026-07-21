@@ -6,6 +6,9 @@ spring:
     name: event-ingestion-service
   kafka:
     bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
   data:
     redis:
       host: redis
@@ -20,3 +23,6 @@ management:
     web:
       exposure:
         include: health,info,metrics
+
+ingestion:
+  events-topic: antifraude.game-events
