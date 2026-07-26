@@ -10,14 +10,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.jupiter.api.Test;
+
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 
-import org.junit.jupiter.api.Test;
-
 class GameEventTest {
 
-    // Valida as anotações Bean Validation aplicadas no record.
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     @Test
@@ -30,11 +29,13 @@ class GameEventTest {
                 "player-123",
                 GameEventType.BET,
                 Instant.parse("2026-07-18T12:30:00Z"),
+                "sess-1",
+                "fp-abc",
+                "192.168.1.1",
                 payload);
 
         assertEquals(1, gameEvent.payload().size());
         assertEquals(150.75, gameEvent.payload().get("amount"));
-        // O payload interno não deve aceitar mutação direta.
         assertThrows(UnsupportedOperationException.class, () -> gameEvent.payload().put("currency", "BRL"));
 
         payload.put("currency", "BRL");
@@ -48,12 +49,16 @@ class GameEventTest {
                 null,
                 "player-123",
                 GameEventType.LOGIN,
-                Instant.parse("2026-07-18T12:30:00Z"),
+                null,
+                "sess-1",
+                "fp-abc",
+                "192.168.1.1",
                 Map.of());
 
-        GameEvent normalized = gameEvent.withGeneratedEventId();
+        GameEvent normalized = gameEvent.withGeneratedMetadata();
 
         assertNotNull(normalized.eventId());
+        assertNotNull(normalized.timestamp());
     }
 
     @Test
@@ -65,19 +70,24 @@ class GameEventTest {
                 "player-123",
                 GameEventType.DEPOSIT,
                 Instant.parse("2026-07-18T12:30:00Z"),
+                "sess-1",
+                "fp-abc",
+                "192.168.1.1",
                 Map.of());
 
-        GameEvent normalized = gameEvent.withGeneratedEventId();
+        GameEvent normalized = gameEvent.withGeneratedMetadata();
 
         assertEquals(eventId, normalized.eventId());
     }
 
     @Test
     void shouldEnforceBeanValidationOnRequiredFields() {
-        // Campos obrigatórios vazios ou nulos devem gerar violações.
         GameEvent gameEvent = new GameEvent(
                 null,
                 "",
+                null,
+                null,
+                null,
                 null,
                 null,
                 Map.of());
