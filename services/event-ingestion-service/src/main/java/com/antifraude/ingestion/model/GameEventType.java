@@ -10,5 +10,6 @@ public enum GameEventType {
     ACCOUNT_LINK,
     DEVICE_FINGERPRINT,
     WITHDRAWAL,
-    DEPOSIT
+    DEPOSIT,
+    MULTI_ACCOUNT_SUSPECT
 }
