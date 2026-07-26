@@ -1,22 +1,64 @@
 server:
-  port: 8081
+  port: ${PORT:8081}
 
 spring:
   application:
     name: risk-scoring-service
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    consumer:
+      group-id: risk-scoring-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
   data:
     redis:
-      host: redis
-      port: 6379
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
   datasource:
-    url: jdbc:postgresql://postgres:5432/antifraude
-    username: antifraude
-    password: antifraude
+    url: ${DATABASE_URL:jdbc:postgresql://${POSTGRES_HOST:postgres}:5432/${POSTGRES_DB:antifraude}}
+    username: ${POSTGRES_USER:antifraude}
+    password: ${POSTGRES_PASSWORD:antifraude}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    table: flyway_schema_history_scoring
+    baseline-on-migrate: true
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus,circuitbreakers
+  health:
+    circuitbreakers:
+      enabled: true
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      redis:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+      postgres:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+
+scoring:
+  topics:
+    input-events: player-actions
+    output-scores: risk-score-updated
