@@ -2,16 +2,14 @@ package com.antifraude.ingestion;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.Instant;
 import java.util.Map;
-
-import com.antifraude.ingestion.model.GameEvent;
-import com.antifraude.ingestion.model.GameEventType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +18,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+
+import com.antifraude.ingestion.model.GameEvent;
+import com.antifraude.ingestion.model.GameEventType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @WebMvcTest(controllers = EventIngestionController.class)
 @Import(ApiExceptionHandler.class)
@@ -32,24 +34,40 @@ class EventIngestionControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    private EventPublisher eventPublisher;
+    private IngestionService ingestionService;
 
     @Test
-    void shouldAcceptEventAndReturnGeneratedEventId() throws Exception {
+    void shouldAcceptActionAndReturnGeneratedEventId() throws Exception {
         GameEvent eventWithoutId = new GameEvent(
                 null,
                 "player-123",
                 GameEventType.BET,
                 Instant.parse("2026-07-18T12:30:00Z"),
+                "sess-1",
+                "fp-abc",
+                "192.168.1.1",
                 Map.of("amount", 200.50));
 
-        mockMvc.perform(post("/events")
+        UUID generatedId = UUID.randomUUID();
+        GameEvent processedEvent = new GameEvent(
+                generatedId,
+                "player-123",
+                GameEventType.BET,
+                Instant.parse("2026-07-18T12:30:00Z"),
+                "sess-1",
+                "fp-abc",
+                "192.168.1.1",
+                Map.of("amount", 200.50));
+
+        when(ingestionService.ingestAndPublish(any(GameEvent.class))).thenReturn(processedEvent);
+
+        mockMvc.perform(post("/api/v1/actions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(eventWithoutId)))
                 .andExpect(status().isAccepted())
-                .andExpect(jsonPath("$.eventId").isNotEmpty());
+                .andExpect(jsonPath("$.eventId").value(generatedId.toString()));
 
-        verify(eventPublisher).publish(any(GameEvent.class));
+        verify(ingestionService).ingestAndPublish(any(GameEvent.class));
     }
 
     @Test
@@ -64,7 +82,7 @@ class EventIngestionControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/api/v1/actions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidPayload))
                 .andExpect(status().isBadRequest())
@@ -78,7 +96,7 @@ class EventIngestionControllerTest {
     void shouldReturnBadRequestWhenJsonIsMalformed() throws Exception {
         String malformedJson = "{\"playerId\": \"player-1\", \"eventType\": BET}";
 
-        mockMvc.perform(post("/events")
+        mockMvc.perform(post("/api/v1/actions")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(malformedJson))
                 .andExpect(status().isBadRequest())
