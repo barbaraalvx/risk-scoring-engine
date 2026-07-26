@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+    "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<!--
+  Suppressions for rules that conflict with Spring Boot / framework conventions.
+-->
+<suppressions>
+
+  <!--
+    Spring Boot entry-point classes annotated with @SpringBootApplication cannot be
+    declared `final` because Spring uses CGLIB to subclass @Configuration classes at
+    runtime. FinalClass is suppressed only for files named "Application.java".
+  -->
+  <suppress checks="FinalClass" files="Application\.java"/>
+
+  <!--
+    Spring Boot entry-point classes have a private constructor to satisfy
+    HideUtilityClassConstructor, so that rule would otherwise fire on Application.java.
+    The class is NOT really a utility class — suppress it for the same file.
+  -->
+  <suppress checks="HideUtilityClassConstructor" files="Application\.java"/>
+
+  <!--
+    package-info.java files are declaration-only; Javadoc rules don't apply.
+  -->
+  <suppress checks="JavadocMethod|JavadocType|JavadocVariable|MissingJavadocMethod"
+            files="package-info\.java"/>
+
+</suppressions>
