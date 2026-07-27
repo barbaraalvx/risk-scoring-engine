@@ -51,6 +51,7 @@ jobs:
     needs: build-and-push
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Deploy risk-scoring-service to Render
