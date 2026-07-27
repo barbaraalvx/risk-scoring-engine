@@ -61,7 +61,7 @@ jobs:
             echo "Secret RENDER_RISK_SCORING_DEPLOY_HOOK_URL not configured. Skipping deployment."
             exit 0
           fi
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+          curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
 
       - name: Deploy quarantine-service to Render
         env:
@@ -71,4 +71,4 @@ jobs:
             echo "Secret RENDER_QUARANTINE_DEPLOY_HOOK_URL not configured. Skipping deployment."
             exit 0
           fi
-          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+          curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
