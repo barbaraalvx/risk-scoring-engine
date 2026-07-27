@@ -47,28 +47,29 @@ jobs:
             ${{ env.IMAGE_NAME }}:latest
             ${{ env.IMAGE_NAME }}:${{ env.SHORT_SHA }}
 
-  # deploy-render:
-  #   needs: build-and-push
-  #   if: ${{ github.event.workflow_run.conclusion == 'success' }}
-  #   runs-on: ubuntu-latest
+  deploy-render:
+    needs: build-and-push
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
-  #   steps:
-  #     - name: Deploy risk-scoring-service to Render
-  #       env:
-  #         RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_RISK_SCORING_DEPLOY_HOOK_URL }}
-  #       run: |
-  #         if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-  #           echo "Secret RENDER_RISK_SCORING_DEPLOY_HOOK_URL not configured. Skipping deployment."
-  #           exit 0
-  #         fi
-  #         curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+    steps:
+      - name: Deploy risk-scoring-service to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_RISK_SCORING_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Secret RENDER_RISK_SCORING_DEPLOY_HOOK_URL not configured. Skipping deployment."
+            exit 0
+          fi
+          curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
 
-  #     - name: Deploy quarantine-service to Render
-  #       env:
-  #         RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_QUARANTINE_DEPLOY_HOOK_URL }}
-  #       run: |
-  #         if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
-  #           echo "Secret RENDER_QUARANTINE_DEPLOY_HOOK_URL not configured. Skipping deployment."
-  #           exit 0
-  #         fi
-  #         curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL"
+      - name: Deploy quarantine-service to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_QUARANTINE_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Secret RENDER_QUARANTINE_DEPLOY_HOOK_URL not configured. Skipping deployment."
+            exit 0
+          fi
+          curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
