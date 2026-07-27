@@ -54,16 +54,7 @@ public class IngestionService {
             }
         }
 
-        PlayerEventEntity entity = new PlayerEventEntity(
-                event.eventId(),
-                event.playerId(),
-                event.eventType(),
-                event.timestamp(),
-                event.sessionId(),
-                event.deviceFingerprint(),
-                event.ipAddress(),
-                payloadJson
-        );
+        PlayerEventEntity entity = new PlayerEventEntity(event, payloadJson);
 
         repository.save(entity);
         publisher.publish(event);

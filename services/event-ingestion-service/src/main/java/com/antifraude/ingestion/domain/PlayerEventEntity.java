@@ -3,6 +3,7 @@ package com.antifraude.ingestion.domain;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.antifraude.ingestion.model.GameEvent;
 import com.antifraude.ingestion.model.GameEventType;
 
 import jakarta.persistence.Column;
@@ -52,59 +53,90 @@ public class PlayerEventEntity {
     }
 
     /**
-     * Construtor completo.
+     * Construtor a partir do modelo GameEvent.
      *
-     * @param id                Identificador único.
-     * @param playerId         ID do jogador.
-     * @param eventType        Tipo do evento.
-     * @param timestamp        Data/hora.
-     * @param sessionId        ID da sessão.
-     * @param deviceFingerprint Fingerprint.
-     * @param ipAddress        Endereço IP.
-     * @param payload          Payload em JSON.
+     * @param event   Evento de jogo.
+     * @param payload JSON do payload.
      */
-    public PlayerEventEntity(final UUID id, final String playerId, final GameEventType eventType,
-                             final Instant timestamp, final String sessionId,
-                             final String deviceFingerprint, final String ipAddress,
-                             final String payload) {
-        this.id = id;
-        this.playerId = playerId;
-        this.eventType = eventType;
-        this.timestamp = timestamp;
-        this.sessionId = sessionId;
-        this.deviceFingerprint = deviceFingerprint;
-        this.ipAddress = ipAddress;
+    public PlayerEventEntity(final GameEvent event, final String payload) {
+        this.id = event.eventId();
+        this.playerId = event.playerId();
+        this.eventType = event.eventType();
+        this.timestamp = event.timestamp();
+        this.sessionId = event.sessionId();
+        this.deviceFingerprint = event.deviceFingerprint();
+        this.ipAddress = event.ipAddress();
         this.payload = payload;
     }
 
+    /**
+     * Identificador do evento.
+     *
+     * @return UUID.
+     */
     public UUID getId() {
         return id;
     }
 
+    /**
+     * ID do jogador.
+     *
+     * @return String.
+     */
     public String getPlayerId() {
         return playerId;
     }
 
+    /**
+     * Tipo do evento.
+     *
+     * @return GameEventType.
+     */
     public GameEventType getEventType() {
         return eventType;
     }
 
+    /**
+     * Timestamp do evento.
+     *
+     * @return Instant.
+     */
     public Instant getTimestamp() {
         return timestamp;
     }
 
+    /**
+     * ID da sessão.
+     *
+     * @return String.
+     */
     public String getSessionId() {
         return sessionId;
     }
 
+    /**
+     * Fingerprint do dispositivo.
+     *
+     * @return String.
+     */
     public String getDeviceFingerprint() {
         return deviceFingerprint;
     }
 
+    /**
+     * Endereço IP.
+     *
+     * @return String.
+     */
     public String getIpAddress() {
         return ipAddress;
     }
 
+    /**
+     * Payload JSON.
+     *
+     * @return String.
+     */
     public String getPayload() {
         return payload;
     }
