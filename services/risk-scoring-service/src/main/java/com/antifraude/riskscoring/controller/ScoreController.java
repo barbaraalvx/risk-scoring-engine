@@ -103,6 +103,10 @@ public class ScoreController {
      * Fallback do Circuit Breaker para a consulta de score mais recente.
      */
     public PlayerScoreRecord scoreFallback(final String playerId, final Throwable ex) {
+        if (ex instanceof ResponseStatusException responseStatusException
+                && responseStatusException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+            throw responseStatusException; //lançando exceção de jogador não encontrado
+        }
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Banco de dados indisponível no momento");
     }
 
@@ -110,6 +114,10 @@ public class ScoreController {
      * Fallback do Circuit Breaker para a consulta de histórico.
      */
     public List<PlayerScoreRecord> historyFallback(final String playerId, final int limit, final Throwable ex) {
+        if (ex instanceof ResponseStatusException responseStatusException
+                && responseStatusException.getStatusCode().value() == HttpStatus.NOT_FOUND.value()) {
+            throw responseStatusException; //lançando exceção de jogador não encontrado
+        }
         throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Banco de dados indisponível no momento");
     }
 }
