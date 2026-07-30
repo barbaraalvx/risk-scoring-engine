@@ -1,5 +1,100 @@
 package com.antifraude.quarantine.service;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.antifraude.quarantine.domain.QuarantineStatus;
+import com.antifraude.quarantine.event.QuarantineUpdatedEvent;
+import com.antifraude.quarantine.event.ScoreUpdatedEvent;
+import com.antifraude.quarantine.model.QuarantineRecord;
+import com.antifraude.quarantine.repository.QuarantineRepository;
+
+@Service
 public class QuarantineOrchestrator {
-    
+
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(QuarantineOrchestrator.class);
+
+    private final QuarantineRepository repository;
+
+    // Esse método será implementado futuramente
+    // private final GameBackendClient gameBackendClient;
+
+    private final KafkaTemplate<String, QuarantineUpdatedEvent> kafkaTemplate;
+
+    public QuarantineOrchestrator(
+            final QuarantineRepository repository,
+            final KafkaTemplate<String, QuarantineUpdatedEvent> kafkaTemplate) {
+
+        this.repository = repository;
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    /**
+     * Inicia o fluxo da SAGA de quarentena.
+     *
+     * @param event Evento recebido do Risk Scoring.
+     */
+    public void handle(final ScoreUpdatedEvent event) {
+
+        LOGGER.info(
+                "Recebido score {} para o jogador {}.",
+                event.totalScore(),
+                event.playerId());
+
+        // Verificando threshold
+        if (event.totalScore() < event.quarantineThreshold()) {
+
+            LOGGER.info(
+                    "Jogador {} não atingiu o threshold de quarentena.",
+                    event.playerId());
+
+            return;
+        }
+
+        // Registrando quarentena como PENDING
+        QuarantineRecord record = createPendingRecord(event);
+
+        repository.save(record);
+
+        LOGGER.info(
+                "Quarentena registrada em PENDING para jogador {}.",
+                event.playerId());
+
+        // =============================
+        // Próximas etapas da Task 2
+        // =============================
+        //
+        // blockPlayer(record);
+        //
+        // publishQuarantineEvent(record);
+        //
+        // markAsQuarantined(record);
+        //
+        // compensate(record);
+    }
+
+    /**
+     * Cria o registro inicial da quarentena.
+     */
+    private QuarantineRecord createPendingRecord(
+            final ScoreUpdatedEvent event) {
+
+        return new QuarantineRecord(
+                UUID.randomUUID(),
+                event.playerId(),
+                event.eventId(),
+                event.totalScore(),
+                QuarantineStatus.PENDING,
+                "TotalScore acima do threshold.",
+                Instant.now(),
+                null
+        );
+    }
+
 }
