@@ -64,19 +64,21 @@ public class QuarantineOrchestrator {
 
         LOGGER.info(
                 "Quarentena registrada em PENDING para jogador {}.",
-                event.playerId());
+                event.playerId()
+        );
 
-        // =============================
-        // Próximas etapas da Task 2
-        // =============================
-        //
-        // blockPlayer(record);
-        //
-        // publishQuarantineEvent(record);
-        //
-        // markAsQuarantined(record);
-        //
-        // compensate(record);
+        // blockPlayer(record); //implementação futura
+
+        // Atualizando quarentena para QUARANTINED
+        record = updateStatus(record, QuarantineStatus.QUARANTINED);
+
+        LOGGER.info(
+            "Jogador {} marcado como QUARANTINED.", record.getPlayerId()
+        );
+
+        //publishQuarantineEvent(record); //publica evento de quarentena
+
+        //compensate(record); //implementação futura
     }
 
     /**
@@ -96,5 +98,42 @@ public class QuarantineOrchestrator {
                 null
         );
     }
+
+    /**
+    * Atualiza o status de uma quarentena para um valor infomrado.
+    *
+    * @param record Registro da quarentena.
+    * @param status Status a ser atualizado.
+    */
+    private QuarantineRecord updateStatus(
+        final QuarantineRecord record,
+        final QuarantineStatus status) {
+
+        QuarantineRecord updated = new QuarantineRecord(
+            record.getId(),
+            record.getPlayerId(),
+            record.getEventId(),
+            record.getTotalScore(),
+            status,
+            record.getReason(),
+            record.getCreatedAt(),
+            status == QuarantineStatus.PENDING ? null : Instant.now()
+        );
+
+        repository.save(updated);
+
+        LOGGER.info(
+            "Status da quarentena do jogador {} alterado para {}.",
+            record.getPlayerId(),
+            status);
+
+        return updated;
+    }
+
+    //metodos a serem implementados futuramente
+
+    // private void blockPlayer(final QuarantineRecord record)
+    // private void publishQuarantineEvent(final QuarantineRecord record)
+    // private void compensate(final QuarantineRecord record)
 
 }
