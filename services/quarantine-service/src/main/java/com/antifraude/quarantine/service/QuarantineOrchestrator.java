@@ -45,36 +45,39 @@ public class QuarantineOrchestrator {
         LOGGER.info(
                 "Recebido score {} para o jogador {}.",
                 event.totalScore(),
-                event.playerId());
+                event.playerId()
+        );
 
-        // Verificando threshold
-        if (event.totalScore() < event.quarantineThreshold()) {
-
-            LOGGER.info(
-                    "Jogador {} não atingiu o threshold de quarentena.",
-                    event.playerId());
-
+        //Garante idempotência: verifica se o evento já foi processado
+        if (alreadyProcessed(event.eventId())){
+            LOGGER.warn(
+                "Evento {} já processado anteriormente.",
+                event.eventId()
+            );
             return;
         }
 
-        // Registrando quarentena como PENDING
-        QuarantineRecord record = createPendingRecord(event);
+        // Verificando threshold
+        if (shouldQuarantine(event)) {
+            LOGGER.info(
+                    "Jogador {} atingiu o threshold de quarentena.",
+                    event.playerId());
+        }
+        else {
+            LOGGER.info(
+                    "Jogador {} não atingiu o threshold de quarentena.",
+                    event.playerId()
+            );
+            return;
+        }
 
-        repository.save(record);
-
-        LOGGER.info(
-                "Quarentena registrada em PENDING para jogador {}.",
-                event.playerId()
-        );
+        // Criando e registrando um evento de quarentena como PENDING
+        QuarantineRecord record = registerPendingQuarantine(event);
 
         // blockPlayer(record); //implementação futura
 
         // Atualizando quarentena para QUARANTINED
         record = updateStatus(record, QuarantineStatus.QUARANTINED);
-
-        LOGGER.info(
-            "Jogador {} marcado como QUARANTINED.", record.getPlayerId()
-        );
 
         //publishQuarantineEvent(record); //publica evento de quarentena
 
@@ -82,8 +85,28 @@ public class QuarantineOrchestrator {
     }
 
     /**
+     * Verifica se o evento já foi processado.
+     *
+     * @param eventId ID do evento.
+     * @return true se o evento já foi processado, false caso contrário.
+    */
+    private boolean alreadyProcessed(final UUID eventId) {
+        return repository.existsByEventId(eventId);
+    }
+
+    /**
+     * Verifica se o evento deve ser colocado em quarentena.
+     *
+     * @param event Evento de atualização de score.
+     * @return true se o evento deve ser colocado em quarentena, false caso contrário.
+    */
+    private boolean shouldQuarantine(final ScoreUpdatedEvent event) {
+        return event.totalScore() >= event.quarantineThreshold();
+    }
+
+    /**
      * Cria o registro inicial da quarentena.
-     */
+    */
     private QuarantineRecord createPendingRecord(
             final ScoreUpdatedEvent event) {
 
@@ -97,6 +120,24 @@ public class QuarantineOrchestrator {
                 Instant.now(),
                 null
         );
+    }
+
+    /**
+     * Registra uma quarentena em PENDING.
+     *
+     * @param event Evento de atualização de score.
+     * @return Registro da quarentena.
+     */
+    private QuarantineRecord registerPendingQuarantine(final ScoreUpdatedEvent event) {
+        QuarantineRecord record = createPendingRecord(event);
+
+        repository.save(record);
+
+        LOGGER.info(
+            "Quarentena registrada em PENDING para jogador {}.",
+            event.playerId());
+
+        return record;
     }
 
     /**

@@ -29,10 +29,18 @@ public class ScoreUpdatedConsumer {
     public void consume(final ScoreUpdatedEvent event) {
         LOGGER.info(
             "Evento de score recebido para jogador {}.",
-            event.playerId());
+            event.playerId()
+        );
 
-        orchestrator.handle(event); //Envia o evento para o QuarantineOrchestrator para processamento
-
+        //Envia o evento para o QuarantineOrchestrator para processamento
+        try {
+            orchestrator.handle(event);
+        } catch (Exception ex) {
+            LOGGER.error(
+                "Erro ao processar evento {}.",
+                event.eventId(), ex
+            );
+            throw ex;
+        }
     }
-
 }
