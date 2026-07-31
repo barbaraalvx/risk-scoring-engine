@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
+import com.antifraude.quarantine.client.GameBackendClient;
+
 import com.antifraude.quarantine.domain.QuarantineStatus;
 import com.antifraude.quarantine.event.QuarantineUpdatedEvent;
 import com.antifraude.quarantine.event.ScoreUpdatedEvent;
@@ -21,9 +23,6 @@ public class QuarantineOrchestrator {
             LoggerFactory.getLogger(QuarantineOrchestrator.class);
 
     private final QuarantineRepository repository;
-
-    // Esse método será implementado futuramente
-    // private final GameBackendClient gameBackendClient;
 
     private final KafkaTemplate<String, QuarantineUpdatedEvent> kafkaTemplate;
 
@@ -74,7 +73,8 @@ public class QuarantineOrchestrator {
         // Criando e registrando um evento de quarentena como PENDING
         QuarantineRecord record = registerPendingQuarantine(event);
 
-        // blockPlayer(record); //implementação futura
+        //Chamando o backend do jogo para bloquear o jogador
+        blockPlayer(record);
 
         // Atualizando quarentena para QUARANTINED
         record = updateStatus(record, QuarantineStatus.QUARANTINED);
@@ -171,9 +171,17 @@ public class QuarantineOrchestrator {
         return updated;
     }
 
-    //metodos a serem implementados futuramente
+    /**
+     * Bloqueia um jogador.
+     *
+     * @param record Registro da quarentena.
+     */
+    private void blockPlayer(final QuarantineRecord record){
+        GameBackendClient gameBackendClient = new GameBackendClient();
+        gameBackendClient.blockPlayer(record.getPlayerId());
+    }
 
-    // private void blockPlayer(final QuarantineRecord record)
+    //metodos a serem implementados futuramente
     // private void publishQuarantineEvent(final QuarantineRecord record)
     // private void compensate(final QuarantineRecord record)
 
