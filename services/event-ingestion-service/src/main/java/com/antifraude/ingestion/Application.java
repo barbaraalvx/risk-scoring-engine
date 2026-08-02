@@ -1,20 +1,24 @@
-package com.antifraude.riskscoring;
+package com.antifraude.ingestion;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Entry point of the Risk Scoring Service application.
+ * Ponto de entrada da aplicação Spring Boot de Ingestão de Eventos.
  */
 @SpringBootApplication
 public class Application {
 
-    // Use default constructor pattern for Spring Boot application entry
+    /**
+     * Construtor padrão protegido.
+     */
+    protected Application() {
+    }
 
     /**
-     * Starts the Spring Boot application.
+     * Método principal que inicializa o Spring Boot.
      *
-     * @param args command-line arguments passed to the application
+     * @param args Argumentos de linha de comando.
      */
     public static void main(final String[] args) {
         SpringApplication.run(Application.class, args);

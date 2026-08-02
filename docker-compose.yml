@@ -72,6 +72,14 @@ services:
     ports:
       - "8082:8082"
 
+  event-ingestion-service:
+    build: ./services/event-ingestion-service
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8080:8080"
+
 volumes:
   postgres-data:
   kafka-data:

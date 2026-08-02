@@ -9,9 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Application {
 
-    /** Utility class — do not instantiate. */
-    Application() {
-    }
+    // Use default constructor pattern for Spring Boot application entry
 
     /**
      * Starts the Spring Boot application.

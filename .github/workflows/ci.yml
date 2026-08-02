@@ -14,6 +14,7 @@ jobs:
         service:
           - risk-scoring-service
           - quarantine-service
+          - event-ingestion-service
 
     steps:
       - name: Checkout
