@@ -19,6 +19,7 @@ jobs:
         service:
           - risk-scoring-service
           - quarantine-service
+          - event-ingestion-service
 
     steps:
       - name: Checkout
@@ -70,6 +71,16 @@ jobs:
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
             echo "Secret RENDER_QUARANTINE_DEPLOY_HOOK_URL not configured. Skipping deployment."
+            exit 0
+          fi
+          curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
+
+      - name: Deploy event-ingestion-service to Render
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_EVENT_INGESTION_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Secret RENDER_EVENT_INGESTION_DEPLOY_HOOK_URL not configured. Skipping deployment."
             exit 0
           fi
           curl -fsS --retry 3 --retry-all-errors --connect-timeout 10 --max-time 30 -X POST "$RENDER_DEPLOY_HOOK_URL"
