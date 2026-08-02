@@ -36,4 +36,11 @@
   -->
   <suppress checks="ParameterNumber" files="QuarantineRecord\.java"/>
 
+  <!--
+    PlayerScoreRecord is an immutable JPA entity (no setters), same
+    rationale as QuarantineRecord above: one constructor parameter per
+    persisted column.
+  -->
+  <suppress checks="ParameterNumber" files="PlayerScoreRecord\.java"/>
+
 </suppressions>

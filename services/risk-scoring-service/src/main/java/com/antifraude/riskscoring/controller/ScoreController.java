@@ -52,7 +52,8 @@ public class ScoreController {
     @CircuitBreaker(name = "postgres", fallbackMethod = "scoreFallback")
     public PlayerScoreRecord getLatestScore(@PathVariable final String playerId) {
         return repository.findFirstByPlayerIdOrderByCalculatedAtDesc(playerId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado no histórico"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Jogador não encontrado no histórico"));
     }
 
     /**
@@ -101,6 +102,10 @@ public class ScoreController {
 
     /**
      * Fallback do Circuit Breaker para a consulta de score mais recente.
+     *
+     * @param playerId ID do jogador consultado.
+     * @param ex Exceção geradora do fallback.
+     * @return Nunca retorna normalmente; sempre lança uma exceção.
      */
     public PlayerScoreRecord scoreFallback(final String playerId, final Throwable ex) {
         if (ex instanceof ResponseStatusException responseStatusException
@@ -112,6 +117,11 @@ public class ScoreController {
 
     /**
      * Fallback do Circuit Breaker para a consulta de histórico.
+     *
+     * @param playerId ID do jogador consultado.
+     * @param limit Quantidade limite de registros solicitada.
+     * @param ex Exceção geradora do fallback.
+     * @return Nunca retorna normalmente; sempre lança uma exceção.
      */
     public List<PlayerScoreRecord> historyFallback(final String playerId, final int limit, final Throwable ex) {
         if (ex instanceof ResponseStatusException responseStatusException

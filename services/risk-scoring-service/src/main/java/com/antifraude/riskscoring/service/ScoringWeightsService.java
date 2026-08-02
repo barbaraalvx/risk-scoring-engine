@@ -86,7 +86,9 @@ public class ScoringWeightsService {
      * @param ex      Exceção geradora.
      */
     public void updateFallback(final ScoringWeights weights, final Throwable ex) {
-        LOGGER.error("Circuit Breaker 'redis' acionado! Não foi possível atualizar os pesos no Redis. Motivo: {}", ex.getMessage());
+        LOGGER.error(
+                "Circuit Breaker 'redis' acionado! Não foi possível atualizar os pesos no Redis. Motivo: {}",
+                ex.getMessage());
         throw new IllegalStateException("Serviço de Redis indisponível no momento", ex);
     }
 }
