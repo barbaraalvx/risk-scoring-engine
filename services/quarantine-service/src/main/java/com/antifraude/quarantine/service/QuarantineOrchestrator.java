@@ -15,6 +15,7 @@ import com.antifraude.quarantine.domain.QuarantineStatus;
 import com.antifraude.quarantine.event.QuarantineUpdatedEvent;
 import com.antifraude.quarantine.event.ScoreUpdatedEvent;
 import com.antifraude.quarantine.model.QuarantineRecord;
+import com.antifraude.quarantine.readmodel.QuarantineProjectionService;
 import com.antifraude.quarantine.repository.QuarantineRepository;
 
 
@@ -26,20 +27,39 @@ public class QuarantineOrchestrator {
 
     private final QuarantineRepository repository;
     private final KafkaTemplate<String, QuarantineUpdatedEvent> kafkaTemplate;
+    private final GameBackendClient gameBackendClient;
+    private final QuarantineProjectionService projectionService;
     private final String outputTopic;
 
+    /**
+     * Cria o orquestrador da SAGA de quarentena.
+     *
+     * @param repository Repositório de persistência dos registros de quarentena.
+     * @param kafkaTemplate Template para publicação de eventos no Kafka.
+     * @param gameBackendClient Cliente do backend do jogo, usado para bloquear/desbloquear jogadores.
+     * @param projectionService Serviço responsável por atualizar o read model em Redis.
+     * @param outputTopic Tópico Kafka de saída para eventos de atualização de quarentena.
+     */
     public QuarantineOrchestrator(
             final QuarantineRepository repository,
             final KafkaTemplate<String, QuarantineUpdatedEvent> kafkaTemplate,
+            final GameBackendClient gameBackendClient,
+            final QuarantineProjectionService projectionService,
             @Value("${quarantine.topics.output-scores:quarantine-updated}") final String outputTopic) {
 
         this.repository = repository;
         this.kafkaTemplate = kafkaTemplate;
+        this.gameBackendClient = gameBackendClient;
+        this.projectionService = projectionService;
         this.outputTopic = outputTopic;
     }
 
     /**
-     * Inicia o fluxo da SAGA de quarentena.
+     * Inicia o fluxo da SAGA de quarentena: registra PENDING, bloqueia o
+     * jogador no backend do jogo, marca QUARANTINED e publica o evento.
+     * Caso qualquer etapa após o registro falhe, a SAGA executa a
+     * compensação e encerra em um estado terminal (FAILED/COMPENSATED),
+     * nunca deixando o registro preso em PENDING.
      *
      * @param event Evento recebido do Risk Scoring.
      */
@@ -52,7 +72,7 @@ public class QuarantineOrchestrator {
         );
 
         //Garante idempotência: verifica se o evento já foi processado
-        if (alreadyProcessed(event.eventId())){
+        if (alreadyProcessed(event.eventId())) {
             LOGGER.warn(
                 "Evento {} já processado anteriormente.",
                 event.eventId()
@@ -65,8 +85,7 @@ public class QuarantineOrchestrator {
             LOGGER.info(
                     "Jogador {} atingiu o threshold de quarentena.",
                     event.playerId());
-        }
-        else {
+        } else {
             LOGGER.info(
                     "Jogador {} não atingiu o threshold de quarentena.",
                     event.playerId()
@@ -76,17 +95,22 @@ public class QuarantineOrchestrator {
 
         //Criando e registrando um evento de quarentena como PENDING
         QuarantineRecord record = registerPendingQuarantine(event);
+        projectionService.project(record);
 
         //Chamando o backend do jogo para bloquear o jogador
-        blockPlayer(record);
+        try {
+            blockPlayer(record);
+        } catch (final RuntimeException ex) {
+            handleFailure(record, ex);
+            return;
+        }
 
         //Atualizando quarentena para QUARANTINED
-        record = updateStatus(record, QuarantineStatus.QUARANTINED);
+        record = updateStatus(record, QuarantineStatus.QUARANTINED, record.getReason());
+        projectionService.project(record);
 
         //publica evento de quarentena no Kafka
-        publishQuarantineEvent(record); 
-
-        //compensate(record); //implementação futura
+        publishQuarantineEvent(record);
     }
 
     /**
@@ -146,14 +170,18 @@ public class QuarantineOrchestrator {
     }
 
     /**
-    * Atualiza o status de uma quarentena para um valor infomrado.
+    * Atualiza o status de uma quarentena para um valor informado, permitindo
+    * também atualizar o motivo (por exemplo, ao registrar uma falha).
     *
     * @param record Registro da quarentena.
     * @param status Status a ser atualizado.
+    * @param reason Motivo associado ao novo status.
+    * @return Registro atualizado e persistido.
     */
     private QuarantineRecord updateStatus(
         final QuarantineRecord record,
-        final QuarantineStatus status) {
+        final QuarantineStatus status,
+        final String reason) {
 
         QuarantineRecord updated = new QuarantineRecord(
             record.getId(),
@@ -161,7 +189,7 @@ public class QuarantineOrchestrator {
             record.getEventId(),
             record.getTotalScore(),
             status,
-            record.getReason(),
+            reason,
             record.getCreatedAt(),
             status == QuarantineStatus.PENDING ? null : Instant.now()
         );
@@ -181,9 +209,61 @@ public class QuarantineOrchestrator {
      *
      * @param record Registro da quarentena.
      */
-    private void blockPlayer(final QuarantineRecord record){
-        GameBackendClient gameBackendClient = new GameBackendClient();
+    private void blockPlayer(final QuarantineRecord record) {
         gameBackendClient.blockPlayer(record.getPlayerId());
+    }
+
+    /**
+     * Trata a falha de uma etapa da SAGA posterior ao registro PENDING:
+     * marca o registro como FAILED, executa a compensação e publica o
+     * estado terminal resultante.
+     *
+     * @param record Registro da quarentena que estava em andamento.
+     * @param cause  Exceção que causou a falha.
+     */
+    private void handleFailure(final QuarantineRecord record, final RuntimeException cause) {
+
+        LOGGER.error(
+            "Falha ao processar quarentena do jogador {}. Iniciando compensação.",
+            record.getPlayerId(),
+            cause
+        );
+
+        QuarantineRecord failed = updateStatus(record, QuarantineStatus.FAILED, cause.getMessage());
+        projectionService.project(failed);
+
+        QuarantineRecord compensated = compensate(failed);
+        projectionService.project(compensated);
+
+        publishQuarantineEvent(compensated);
+    }
+
+    /**
+     * Executa a compensação da SAGA: garante que o jogador não fique
+     * bloqueado indevidamente e leva o registro ao estado terminal
+     * COMPENSATED.
+     *
+     * @param record Registro da quarentena já marcado como FAILED.
+     * @return Registro atualizado para COMPENSATED.
+     */
+    private QuarantineRecord compensate(final QuarantineRecord record) {
+
+        LOGGER.warn(
+            "Executando compensação da quarentena do jogador {}.",
+            record.getPlayerId()
+        );
+
+        try {
+            gameBackendClient.unblockPlayer(record.getPlayerId());
+        } catch (final RuntimeException ex) {
+            LOGGER.error(
+                "Falha ao desbloquear jogador {} durante a compensação.",
+                record.getPlayerId(),
+                ex
+            );
+        }
+
+        return updateStatus(record, QuarantineStatus.COMPENSATED, record.getReason());
     }
 
     /**
@@ -224,8 +304,5 @@ public class QuarantineOrchestrator {
             "Evento de quarentena publicado para jogador {}.",
             record.getPlayerId());
     }
-
-    //metodos a serem implementados futuramente
-    // private void compensate(final QuarantineRecord record)
 
 }
