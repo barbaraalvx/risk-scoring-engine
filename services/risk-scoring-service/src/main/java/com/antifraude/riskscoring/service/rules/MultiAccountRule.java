@@ -1,5 +1,7 @@
 package com.antifraude.riskscoring.service.rules;
 
+import java.util.Locale;
+
 import org.springframework.stereotype.Component;
 
 import com.antifraude.riskscoring.model.GameEvent;
@@ -17,7 +19,7 @@ public class MultiAccountRule implements RiskRule {
             return 0;
         }
 
-        String type = event.eventType().toUpperCase();
+        String type = event.eventType().toUpperCase(Locale.ROOT);
         if ("MULTI_ACCOUNT_SUSPECT".equals(type) || "ACCOUNT_LINK".equals(type)) {
             return 25;
         }

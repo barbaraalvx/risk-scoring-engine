@@ -1,5 +1,7 @@
 package com.antifraude.riskscoring.service.rules;
 
+import java.util.Locale;
+
 import org.springframework.stereotype.Component;
 
 import com.antifraude.riskscoring.model.GameEvent;
@@ -18,7 +20,7 @@ public class DeviceFingerprintRule implements RiskRule {
             return 20;
         }
 
-        String fp = event.deviceFingerprint().toLowerCase();
+        String fp = event.deviceFingerprint().toLowerCase(Locale.ROOT);
         if (fp.contains("emulator") || fp.contains("unknown") || fp.contains("root")) {
             return 25;
         }
