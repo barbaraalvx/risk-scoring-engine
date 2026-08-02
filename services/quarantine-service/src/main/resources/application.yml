@@ -6,6 +6,21 @@ spring:
     name: quarantine-service
   kafka:
     bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: quarantine-service
+
+      auto-offset-reset: earliest
+
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.antifraude.quarantine.event.ScoreUpdatedEvent
+        spring.json.trusted.packages: com.antifraude.quarantine.event
   data:
     redis:
       host: redis
@@ -14,9 +29,39 @@ spring:
     url: jdbc:postgresql://postgres:5432/antifraude
     username: antifraude
     password: antifraude
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    table: flyway_schema_history_quarantine
+    baseline-on-migrate: true
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      game-backend:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+
+quarantine:
+  topics:
+    input-events: risk-score-updated
+    output-scores: quarantine-updated
