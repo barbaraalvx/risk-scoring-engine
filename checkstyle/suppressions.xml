@@ -28,4 +28,12 @@
   <suppress checks="JavadocMethod|JavadocType|JavadocVariable|MissingJavadocMethod"
             files="package-info\.java"/>
 
+  <!--
+    QuarantineRecord is an immutable JPA entity (no setters): its full
+    constructor mirrors every persisted column so "updates" can be expressed
+    as new instances. That legitimately needs one parameter per column,
+    which exceeds the general 7-parameter guideline.
+  -->
+  <suppress checks="ParameterNumber" files="QuarantineRecord\.java"/>
+
 </suppressions>

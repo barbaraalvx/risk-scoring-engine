@@ -14,14 +14,14 @@ import com.antifraude.quarantine.domain.QuarantineStatus;
  * @param eventId    Evento que originou a quarentena.
  * @param status     Estado atual da quarentena.
  * @param reason     Motivo da quarentena.
- * @param resolvedAt Momento em que a quarentena foi concluída.
+ * @param timestamp  Momento em que a quarentena foi concluída.
  */
 public record QuarantineUpdatedEvent(
 
         String playerId,
 
         UUID eventId,
-        
+
         QuarantineStatus status,
 
         String reason,
