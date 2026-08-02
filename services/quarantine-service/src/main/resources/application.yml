@@ -20,7 +20,7 @@ spring:
       properties:
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.antifraude.quarantine.event.ScoreUpdatedEvent
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: com.antifraude.quarantine.event
   data:
     redis:
       host: redis
