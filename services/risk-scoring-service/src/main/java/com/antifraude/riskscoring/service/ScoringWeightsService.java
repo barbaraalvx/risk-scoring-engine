@@ -41,15 +41,16 @@ public class ScoringWeightsService {
      */
     @CircuitBreaker(name = "redis", fallbackMethod = "defaultWeights")
     public ScoringWeights getWeights() {
-        try {
-            String json = redisTemplate.opsForValue().get(REDIS_KEY);
-            if (json != null && !json.isBlank()) {
-                return objectMapper.readValue(json, ScoringWeights.class);
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Falha ao ler pesos do Redis, usando valores default. Erro: {}", e.getMessage());
+        String json = redisTemplate.opsForValue().get(REDIS_KEY);
+        if (json == null || json.isBlank()) {
+            return ScoringWeights.defaultConfig();
         }
-        return ScoringWeights.defaultConfig();
+        try {
+            return objectMapper.readValue(json, ScoringWeights.class);
+        } catch (JsonProcessingException e) {
+            LOGGER.warn("Falha ao desserializar pesos do Redis, usando valores default. Erro: {}", e.getMessage());
+            return ScoringWeights.defaultConfig();
+        }
     }
 
     /**
