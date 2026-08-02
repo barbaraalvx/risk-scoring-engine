@@ -63,7 +63,7 @@ public class GameEventConsumer {
      *
      * @param rawMessage Mensagem bruta do Kafka.
      */
-    @KafkaListener(topics = "${scoring.topics.input-events:player-actions}", groupId = "risk-scoring-group")
+    @KafkaListener(topics = "${scoring.topics.input-events:player-actions}")
     @Transactional
     public void consume(final String rawMessage) {
         try {
