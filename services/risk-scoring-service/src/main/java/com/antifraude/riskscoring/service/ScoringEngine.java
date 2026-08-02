@@ -1,5 +1,6 @@
 package com.antifraude.riskscoring.service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -66,12 +67,14 @@ public class ScoringEngine {
 
         boolean quarantineTriggered = totalScore >= weights.quarantineThreshold();
 
-        UUID eventIdUUID = null;
+        UUID eventIdUUID;
         if (event.eventId() != null && !event.eventId().isBlank()) {
             try {
                 eventIdUUID = UUID.fromString(event.eventId());
             } catch (IllegalArgumentException ignored) {
-                eventIdUUID = UUID.randomUUID();
+                // Deriva um UUID determinístico do eventId original para preservar
+                // idempotência: o mesmo evento reprocessado deve gerar o mesmo UUID.
+                eventIdUUID = UUID.nameUUIDFromBytes(event.eventId().getBytes(StandardCharsets.UTF_8));
             }
         } else {
             eventIdUUID = UUID.randomUUID();
