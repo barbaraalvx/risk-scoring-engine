@@ -18,5 +18,6 @@ public enum GameEventType {
     WITHDRAWAL,
     /** Evento de depósito de fundos. */
     DEPOSIT,
+    /** Evento de suspeita de múltiplas contas associadas. */
     MULTI_ACCOUNT_SUSPECT
 }
