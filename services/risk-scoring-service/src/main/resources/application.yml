@@ -57,6 +57,8 @@ resilience4j:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
+        ignore-exceptions:
+          - org.springframework.web.server.ResponseStatusException
 
 scoring:
   topics:
