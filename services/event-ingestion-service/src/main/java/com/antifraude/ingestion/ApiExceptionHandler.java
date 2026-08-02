@@ -12,13 +12,21 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+/**
+ * Handler de exceções globais para a API de Ingestão de Eventos.
+ */
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    /**
+     * Trata erros de validação de argumentos de método (Bean Validation).
+     *
+     * @param ex Exceção capturada.
+     * @return DTO ApiErrorResponse.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorResponse handleValidationError(final MethodArgumentNotValidException ex) {
-        // Traduz erros de Bean Validation para um payload uniforme, amigavel para API clients.
         List<ValidationErrorDetail> details = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -33,10 +41,15 @@ public class ApiExceptionHandler {
                 details);
     }
 
+    /**
+     * Trata erros de leitura de payload HTTP (JSON malformado).
+     *
+     * @param ex Exceção capturada.
+     * @return DTO ApiErrorResponse.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiErrorResponse handleUnreadablePayload(final HttpMessageNotReadableException ex) {
-        // Falha de parse JSON acontece antes da validacao de campos, por isso trata separadamente.
         ValidationErrorDetail detail = new ValidationErrorDetail("body", "JSON invalido ou mal formatado.", null);
 
         return new ApiErrorResponse(
