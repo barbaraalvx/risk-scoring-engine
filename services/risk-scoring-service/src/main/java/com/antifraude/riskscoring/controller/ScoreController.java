@@ -19,7 +19,9 @@ import com.antifraude.riskscoring.repository.PlayerScoreRepository;
 import com.antifraude.riskscoring.service.ScoringWeights;
 import com.antifraude.riskscoring.service.ScoringWeightsService;
 import com.antifraude.riskscoring.controller.dto.AdminDashboardView;
+import com.antifraude.riskscoring.controller.dto.QuarantineHistoryView;
 import com.antifraude.riskscoring.controller.dto.RecentScoreSignalView;
+import com.antifraude.riskscoring.service.QuarantineIntegrationService;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
@@ -32,6 +34,7 @@ public class ScoreController {
 
     private final PlayerScoreRepository repository;
     private final ScoringWeightsService weightsService;
+    private final QuarantineIntegrationService quarantineIntegrationService;
 
     /**
      * Construtor injetando dependências.
@@ -39,9 +42,12 @@ public class ScoreController {
      * @param repository     Repositório JPA.
      * @param weightsService Serviço de Feature Flags Redis.
      */
-    public ScoreController(final PlayerScoreRepository repository, final ScoringWeightsService weightsService) {
+    public ScoreController(final PlayerScoreRepository repository,
+                           final ScoringWeightsService weightsService,
+                           final QuarantineIntegrationService quarantineIntegrationService) {
         this.repository = repository;
         this.weightsService = weightsService;
+        this.quarantineIntegrationService = quarantineIntegrationService;
     }
 
     /**
@@ -120,7 +126,9 @@ public class ScoreController {
                         signal.getCalculatedAt()))
                 .toList();
 
-        return new AdminDashboardView(weights, totalScores, quarantinedScores, recentSignals);
+        List<QuarantineHistoryView> quarantineHistory = quarantineIntegrationService.getLatestQuarantineStatus();
+
+        return new AdminDashboardView(weights, totalScores, quarantinedScores, recentSignals, quarantineHistory);
     }
 
     /**

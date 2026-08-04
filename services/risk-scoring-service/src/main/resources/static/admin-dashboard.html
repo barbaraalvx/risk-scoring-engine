@@ -84,6 +84,16 @@
             <tbody id="signalsBody"></tbody>
         </table>
     </div>
+
+    <div class="card">
+        <h2>Status de quarentena por jogador</h2>
+        <table>
+            <thead>
+            <tr><th>Jogador</th><th>Status</th><th>Motivo</th></tr>
+            </thead>
+            <tbody id="quarantineBody"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
@@ -119,6 +129,15 @@
                 <td>${signal.totalScore}</td>
                 <td>${signal.quarantineTriggered ? 'Sim' : 'Não'}</td>
                 <td>${new Date(signal.calculatedAt).toLocaleString('pt-BR')}</td>
+            </tr>
+        `).join('');
+
+        const quarantineBody = document.getElementById('quarantineBody');
+        quarantineBody.innerHTML = (dashboard.quarantineHistory || []).map(item => `
+            <tr>
+                <td>${item.playerId}</td>
+                <td>${item.status}</td>
+                <td>${item.reason}</td>
             </tr>
         `).join('');
     }

@@ -11,5 +11,6 @@ public record AdminDashboardView(
         ScoringWeights flags,
         long totalScores,
         long quarantinedScores,
-        List<RecentScoreSignalView> recentSignals) {
+        List<RecentScoreSignalView> recentSignals,
+        List<QuarantineHistoryView> quarantineHistory) {
 }
