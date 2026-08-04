@@ -59,11 +59,11 @@ class ScoringEngineTest {
         when(repository.countActionsSince(eq("player-normal"), any(Instant.class))).thenReturn(0L);
 
         ScoringWeights weights = ScoringWeights.defaultConfig();
-        PlayerScoreRecord record = scoringEngine.calculate(event, weights);
+        PlayerScoreRecord scoreRecord = scoringEngine.calculate(event, weights);
 
-        assertNotNull(record);
-        assertEquals(0, record.getTotalScore());
-        assertFalse(record.isQuarantineTriggered());
+        assertNotNull(scoreRecord);
+        assertEquals(0, scoreRecord.getTotalScore());
+        assertFalse(scoreRecord.isQuarantineTriggered());
     }
 
     @Test
@@ -82,10 +82,45 @@ class ScoringEngineTest {
         when(repository.countActionsSince(eq("player-bot"), any(Instant.class))).thenReturn(10L);
 
         ScoringWeights weights = ScoringWeights.defaultConfig();
-        PlayerScoreRecord record = scoringEngine.calculate(event, weights);
+        PlayerScoreRecord scoreRecord = scoringEngine.calculate(event, weights);
 
-        assertNotNull(record);
-        assertEquals(100, record.getTotalScore());
-        assertTrue(record.isQuarantineTriggered());
+        assertNotNull(scoreRecord);
+        assertEquals(100, scoreRecord.getTotalScore());
+        assertTrue(scoreRecord.isQuarantineTriggered());
+    }
+
+    @Test
+    void shouldRespectAdminFlagsWhenRulesAndQuarantineAreDisabled() {
+        GameEvent event = new GameEvent(
+                "evt-3",
+                "player-flagged",
+                "MULTI_ACCOUNT_SUSPECT",
+                Instant.now().toString(),
+                "sess-3",
+                "android_emulator",
+                "10.0.0.6",
+                Map.of("amount", 10000.0)
+        );
+
+        when(repository.countActionsSince(eq("player-flagged"), any(Instant.class))).thenReturn(10L);
+
+        ScoringWeights weights = new ScoringWeights(
+                0.25,
+                0.25,
+                0.25,
+                0.25,
+                70.0,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false);
+
+        PlayerScoreRecord scoreRecord = scoringEngine.calculate(event, weights);
+
+        assertNotNull(scoreRecord);
+        assertEquals(0, scoreRecord.getTotalScore());
+        assertFalse(scoreRecord.isQuarantineTriggered());
     }
 }

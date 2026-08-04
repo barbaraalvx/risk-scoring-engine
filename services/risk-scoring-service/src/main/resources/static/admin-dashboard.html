@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Risk Scoring</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+        .container { max-width: 1120px; margin: 0 auto; padding: 24px; }
+        .card { background: #111827; border: 1px solid #334155; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        h1, h2 { margin-top: 0; }
+        .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .metric { background: #1f2937; padding: 16px; border-radius: 10px; }
+        label { display: block; margin-bottom: 6px; font-weight: bold; }
+        input[type="number"], input[type="range"] { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #64748b; }
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        button { background: #16a34a; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+        button:hover { background: #15803d; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #334155; text-align: left; }
+        .status-ok { color: #4ade80; }
+        .status-risk { color: #f59e0b; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Painel Admin do Motor de Risk Scoring</h1>
+        <p>Monitore sinais de fraude, controle as flags administrativas e ajuste o threshold de quarentena em tempo real.</p>
+    </div>
+
+    <div class="card">
+        <h2>Resumo operacional</h2>
+        <div class="grid" id="summary"></div>
+    </div>
+
+    <div class="card">
+        <h2>Configuração de flags e threshold</h2>
+        <form id="weightsForm">
+            <div class="grid">
+                <div>
+                    <label for="deviceWeight">Peso Device Fingerprint</label>
+                    <input id="deviceWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div>
+                    <label for="velocityWeight">Peso Velocidade</label>
+                    <input id="velocityWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div>
+                    <label for="patternWeight">Peso Padrão de Escolhas</label>
+                    <input id="patternWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div>
+                    <label for="multiAccountWeight">Peso Multi-conta</label>
+                    <input id="multiAccountWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div>
+                    <label for="quarantineThreshold">Threshold de Quarentena</label>
+                    <input id="quarantineThreshold" type="number" step="1" min="0" max="100">
+                </div>
+            </div>
+            <div class="grid" style="margin-top: 14px;">
+                <div>
+                    <div class="toggle-row"><span>Device rule</span><input id="deviceRuleEnabled" type="checkbox"></div>
+                    <div class="toggle-row"><span>Velocity rule</span><input id="velocityRuleEnabled" type="checkbox"></div>
+                    <div class="toggle-row"><span>Pattern rule</span><input id="patternRuleEnabled" type="checkbox"></div>
+                </div>
+                <div>
+                    <div class="toggle-row"><span>Multi-account rule</span><input id="multiAccountRuleEnabled" type="checkbox"></div>
+                    <div class="toggle-row"><span>Quarentena automática</span><input id="quarantineEnabled" type="checkbox"></div>
+                    <div class="toggle-row"><span>Monitoramento admin</span><input id="adminMonitoringEnabled" type="checkbox"></div>
+                </div>
+            </div>
+            <button type="submit">Salvar alterações</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Sinais recentes</h2>
+        <table>
+            <thead>
+            <tr><th>Jogador</th><th>Score</th><th>Quarentena</th><th>Timestamp</th></tr>
+            </thead>
+            <tbody id="signalsBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    async function loadDashboard() {
+        const response = await fetch('/api/v1/admin/dashboard');
+        const dashboard = await response.json();
+
+        const summary = document.getElementById('summary');
+        summary.innerHTML = `
+            <div class="metric"><h3>Total de scores</h3><p>${dashboard.totalScores}</p></div>
+            <div class="metric"><h3>Registros em quarentena</h3><p>${dashboard.quarantinedScores}</p></div>
+            <div class="metric"><h3>Threshold atual</h3><p>${dashboard.flags.quarantineThreshold}</p></div>
+            <div class="metric"><h3>Status do painel</h3><p class="${dashboard.flags.adminMonitoringEnabled ? 'status-ok' : 'status-risk'}">${dashboard.flags.adminMonitoringEnabled ? 'Ativo' : 'Desativado'}</p></div>
+        `;
+
+        const flags = dashboard.flags;
+        document.getElementById('deviceWeight').value = flags.deviceWeight;
+        document.getElementById('velocityWeight').value = flags.velocityWeight;
+        document.getElementById('patternWeight').value = flags.patternWeight;
+        document.getElementById('multiAccountWeight').value = flags.multiAccountWeight;
+        document.getElementById('quarantineThreshold').value = flags.quarantineThreshold;
+        document.getElementById('deviceRuleEnabled').checked = flags.deviceRuleEnabled;
+        document.getElementById('velocityRuleEnabled').checked = flags.velocityRuleEnabled;
+        document.getElementById('patternRuleEnabled').checked = flags.patternRuleEnabled;
+        document.getElementById('multiAccountRuleEnabled').checked = flags.multiAccountRuleEnabled;
+        document.getElementById('quarantineEnabled').checked = flags.quarantineEnabled;
+        document.getElementById('adminMonitoringEnabled').checked = flags.adminMonitoringEnabled;
+
+        const body = document.getElementById('signalsBody');
+        body.innerHTML = dashboard.recentSignals.map(signal => `
+            <tr>
+                <td>${signal.playerId}</td>
+                <td>${signal.totalScore}</td>
+                <td>${signal.quarantineTriggered ? 'Sim' : 'Não'}</td>
+                <td>${new Date(signal.calculatedAt).toLocaleString('pt-BR')}</td>
+            </tr>
+        `).join('');
+    }
+
+    document.getElementById('weightsForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = {
+            deviceWeight: Number(document.getElementById('deviceWeight').value),
+            velocityWeight: Number(document.getElementById('velocityWeight').value),
+            patternWeight: Number(document.getElementById('patternWeight').value),
+            multiAccountWeight: Number(document.getElementById('multiAccountWeight').value),
+            quarantineThreshold: Number(document.getElementById('quarantineThreshold').value),
+            deviceRuleEnabled: document.getElementById('deviceRuleEnabled').checked,
+            velocityRuleEnabled: document.getElementById('velocityRuleEnabled').checked,
+            patternRuleEnabled: document.getElementById('patternRuleEnabled').checked,
+            multiAccountRuleEnabled: document.getElementById('multiAccountRuleEnabled').checked,
+            quarantineEnabled: document.getElementById('quarantineEnabled').checked,
+            adminMonitoringEnabled: document.getElementById('adminMonitoringEnabled').checked
+        };
+
+        await fetch('/api/v1/admin/scoring-weights', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        await loadDashboard();
+        alert('Configuração atualizada com sucesso.');
+    });
+
+    loadDashboard();
+</script>
+</body>
+</html>

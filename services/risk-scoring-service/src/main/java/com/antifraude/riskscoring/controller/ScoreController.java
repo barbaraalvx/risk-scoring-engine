@@ -18,6 +18,8 @@ import com.antifraude.riskscoring.domain.PlayerScoreRecord;
 import com.antifraude.riskscoring.repository.PlayerScoreRepository;
 import com.antifraude.riskscoring.service.ScoringWeights;
 import com.antifraude.riskscoring.service.ScoringWeightsService;
+import com.antifraude.riskscoring.controller.dto.AdminDashboardView;
+import com.antifraude.riskscoring.controller.dto.RecentScoreSignalView;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
@@ -69,7 +71,7 @@ public class ScoreController {
             @PathVariable final String playerId,
             @RequestParam(defaultValue = "20") final int limit) {
         List<PlayerScoreRecord> history = repository.findByPlayerIdOrderByCalculatedAtDesc(
-                playerId, PageRequest.of(0, Math.min(100, Math.max(1, limit))));
+                playerId, PageRequest.of(0, Math.clamp(limit, 1, 100)));
 
         if (history.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado no histórico");
@@ -98,6 +100,27 @@ public class ScoreController {
     public ScoringWeights updateWeights(@RequestBody final ScoringWeights newWeights) {
         weightsService.updateWeights(newWeights);
         return newWeights;
+    }
+
+    /**
+     * Retorna um painel administrativo consolidado com flags e métricas recentes.
+     *
+     * @return Dashboard admin.
+     */
+    @GetMapping("/admin/dashboard")
+    public AdminDashboardView getAdminDashboard() {
+        ScoringWeights weights = weightsService.getWeights();
+        long totalScores = repository.count();
+        long quarantinedScores = repository.countByQuarantineTriggeredTrue();
+        List<RecentScoreSignalView> recentSignals = repository.findTop10ByOrderByCalculatedAtDesc().stream()
+                .map(signal -> new RecentScoreSignalView(
+                        signal.getPlayerId(),
+                        signal.getTotalScore(),
+                        signal.isQuarantineTriggered(),
+                        signal.getCalculatedAt()))
+                .toList();
+
+        return new AdminDashboardView(weights, totalScores, quarantinedScores, recentSignals);
     }
 
     /**

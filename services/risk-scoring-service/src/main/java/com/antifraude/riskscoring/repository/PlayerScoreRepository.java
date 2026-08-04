@@ -45,4 +45,25 @@ public interface PlayerScoreRepository extends JpaRepository<PlayerScoreRecord, 
      */
     @Query("SELECT COUNT(r) FROM PlayerScoreRecord r WHERE r.playerId = :playerId AND r.calculatedAt >= :since")
     long countActionsSince(@Param("playerId") String playerId, @Param("since") Instant since);
+
+    /**
+     * Conta quantos registros de score foram avaliados até o momento.
+     *
+     * @return Total de registros processados.
+     */
+    long count();
+
+    /**
+     * Conta quantos registros de score dispararam quarentena.
+     *
+     * @return Total de registros com quarentena acionada.
+     */
+    long countByQuarantineTriggeredTrue();
+
+    /**
+     * Busca os registros mais recentes para exibição no painel admin.
+     *
+     * @return Lista com os 10 registros mais recentes.
+     */
+    List<PlayerScoreRecord> findTop10ByOrderByCalculatedAtDesc();
 }

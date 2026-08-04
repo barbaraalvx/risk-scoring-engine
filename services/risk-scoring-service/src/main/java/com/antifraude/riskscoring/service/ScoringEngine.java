@@ -51,10 +51,10 @@ public class ScoringEngine {
      * @return PlayerScoreRecord populado.
      */
     public PlayerScoreRecord calculate(final GameEvent event, final ScoringWeights weights) {
-        int deviceScore = deviceRule.calculate(event);
-        int velocityScore = velocityRule.calculate(event);
-        int patternScore = patternRule.calculate(event);
-        int multiAccountScore = multiAccountRule.calculate(event);
+        int deviceScore = weights.deviceRuleEnabled() ? deviceRule.calculate(event) : 0;
+        int velocityScore = weights.velocityRuleEnabled() ? velocityRule.calculate(event) : 0;
+        int patternScore = weights.patternRuleEnabled() ? patternRule.calculate(event) : 0;
+        int multiAccountScore = weights.multiAccountRuleEnabled() ? multiAccountRule.calculate(event) : 0;
 
         // Soma ponderada (cada sub-score vai de 0 a 25)
         double weightedSum = (deviceScore * weights.deviceWeight())
@@ -63,9 +63,10 @@ public class ScoringEngine {
                 + (multiAccountScore * weights.multiAccountWeight());
 
         // Escala normalizada para (0 - 100)
-        int totalScore = (int) Math.min(100, Math.max(0, Math.round(weightedSum * 4.0)));
+        int totalScore = Math.clamp(Math.round(weightedSum * 4.0), 0, 100);
 
-        boolean quarantineTriggered = totalScore >= weights.quarantineThreshold();
+        boolean quarantineTriggered = weights.quarantineEnabled()
+                && totalScore >= weights.quarantineThreshold();
 
         UUID eventIdUUID;
         if (event.eventId() != null && !event.eventId().isBlank()) {
