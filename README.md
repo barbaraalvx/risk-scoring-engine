@@ -41,6 +41,15 @@ As flags administrativas incluem:
 
 ---
 
+### 📐 Diagramas de Arquitetura (Modelo C4)
+Os diagramas do Modelo C4 desenvolvidos para a solução estão organizados na pasta `docs/architecture/`:
+* [C4 Nível 1 - Contexto do Sistema](docs/architecture/c4-context.pdf) ([PNG](docs/architecture/c4-context.png))
+* [C4 Nível 2 - Containers & Microsserviços](docs/architecture/c4-containers.pdf) ([PNG](docs/architecture/c4-containers.png))
+* [C4 Nível 3 - Componentes](docs/architecture/c4-components.pdf) ([PNG](docs/architecture/c4-components.png))
+* [C4 Nível 4 - Classes](docs/architecture/c4-classes.pdf) ([PNG](docs/architecture/c4-classes.png))
+
+---
+
 ### 🧪 Testes de Carga e Simulação de Fraudes
 O repositório inclui um script em Python para simulação dos 4 cenários de ataque e testes de estresse com relatórios de latência (P50, P95, P99) e vazão (RPS).
 
@@ -51,7 +60,7 @@ python scripts/load_test.py --scenario all
 # Teste de estresse com 1000 requisições e 30 workers concorrentes
 python scripts/load_test.py --scenario stress --requests 1000 --workers 30
 ```
-Para o relatório estatístico completo de benchmarks e resultados dos testes, consulte [docs/TEST_REPORT.md](docs/TEST_REPORT.md) e [docs/LOAD_TESTING.md](docs/LOAD_TESTING.md).
+Para o relatório estatístico completo de benchmarks e resultados dos testes, consulte [docs/reports/TEST_REPORT.md](docs/reports/TEST_REPORT.md) e [docs/reports/LOAD_TESTING.md](docs/reports/LOAD_TESTING.md).
 
 ---
 
@@ -102,7 +111,7 @@ Abaixo está o resumo do uso de Ferramentas de Inteligência Artificial Generati
   - **O que precisou de correção:** Código gerado por prompts isolados sem o contexto completo do projeto e desalinhamento na ordem de dependências de tarefas sugeridas pelas LLMs.
   - **O que foi descartado:** *Loop engineering* totalmente autônomo, devido ao consumo excessivo de tokens e geração de código inacabado que quebrava o build da aplicação.
 
-Para o relatório detalhado com metodologias e análises, consulte [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
+Para o relatório detalhado com metodologias e análises, consulte [docs/reports/AI_TOOLS.md](docs/reports/AI_TOOLS.md).
 
 ---
 
