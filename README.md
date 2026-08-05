@@ -68,6 +68,6 @@ Essas flags permitem desativar regras individuais, suspender automaticamente a q
 ---
 
 ### �📹 Apresentações e Entregas
-* Projeto 01 (26/06): Definição de Tema (Este arquivo)
-* Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
-* Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
+* Projeto 01 (26/06): Definição de Tema
+* Projeto 02 (10/07): Documentação Inicial & Arquitetura
+* Projeto 03 (07/08): Documentação Final & Solução Completa
