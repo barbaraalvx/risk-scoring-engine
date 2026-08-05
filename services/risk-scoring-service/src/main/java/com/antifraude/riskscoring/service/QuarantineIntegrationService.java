@@ -16,6 +16,8 @@ import com.antifraude.riskscoring.controller.dto.QuarantineHistoryView;
 @Service
 public class QuarantineIntegrationService {
 
+    private final WebClient webClient;
+
     /**
      * Construtor do serviço de integração com quarentena.
      *

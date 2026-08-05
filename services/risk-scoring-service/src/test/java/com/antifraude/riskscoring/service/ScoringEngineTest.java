@@ -102,8 +102,6 @@ class ScoringEngineTest {
                 Map.of("amount", 10000.0)
         );
 
-        when(repository.countActionsSince(eq("player-flagged"), any(Instant.class))).thenReturn(10L);
-
         ScoringWeights weights = new ScoringWeights(
                 0.25,
                 0.25,
