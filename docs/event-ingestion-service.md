@@ -16,7 +16,7 @@ Este documento descreve o novo módulo `event-ingestion-service`
 - Foi adicionado `src/main/resources/application.yml` configurado para rodar na porta `8083` e expondo os endpoints de gerenciamento `health,info,metrics`.
 - Foi adicionado um `Dockerfile` seguindo o mesmo padrão multi-stage usado pelos outros serviços.
 - Adicionado event-ingestion-service à matrix em ci.yml:1.
-- Registrado event-ingestion-service em docker-compose.yml:1 com depends_on: [kafka] e ports: ["8083:8083"].
+- Registrado event-ingestion-service em .yml:1 com depends_on: [kafka] e ports: ["8083:8083"].
 
 ## Como testar
 
