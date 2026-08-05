@@ -2,7 +2,9 @@ package com.antifraude.quarantine.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +39,18 @@ public class QuarantineQueryController {
         this.projectionService = projectionService;
         this.repository = repository;
     }
+
+    /**
+     * Retorna os registros mais recentes de quarentena para o painel administrativo.
+     *
+     * @return 200 com a lista dos registros de quarentena mais recentes.
+     */
+    @GetMapping
+    public ResponseEntity<List<QuarantineRecord>> getAllRecentQuarantines() {
+        return ResponseEntity.ok(
+                repository.findAll(PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"))).getContent());
+    }
+
 
     /**
      * Retorna o estado atual da quarentena de um jogador a partir do read

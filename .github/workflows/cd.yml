@@ -25,6 +25,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Validate docker-compose
+        run: docker compose config
+
       - name: Set image metadata
         run: |
           echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${{ matrix.service }}" >> $GITHUB_ENV

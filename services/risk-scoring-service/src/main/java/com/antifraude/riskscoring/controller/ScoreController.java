@@ -18,6 +18,10 @@ import com.antifraude.riskscoring.domain.PlayerScoreRecord;
 import com.antifraude.riskscoring.repository.PlayerScoreRepository;
 import com.antifraude.riskscoring.service.ScoringWeights;
 import com.antifraude.riskscoring.service.ScoringWeightsService;
+import com.antifraude.riskscoring.controller.dto.AdminDashboardView;
+import com.antifraude.riskscoring.controller.dto.QuarantineHistoryView;
+import com.antifraude.riskscoring.controller.dto.RecentScoreSignalView;
+import com.antifraude.riskscoring.service.QuarantineIntegrationService;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
@@ -30,16 +34,21 @@ public class ScoreController {
 
     private final PlayerScoreRepository repository;
     private final ScoringWeightsService weightsService;
+    private final QuarantineIntegrationService quarantineIntegrationService;
 
     /**
      * Construtor injetando dependências.
      *
-     * @param repository     Repositório JPA.
-     * @param weightsService Serviço de Feature Flags Redis.
+     * @param repository                   Repositório JPA.
+     * @param weightsService                Serviço de Feature Flags Redis.
+     * @param quarantineIntegrationService  Serviço de integração REST com o serviço de quarentena.
      */
-    public ScoreController(final PlayerScoreRepository repository, final ScoringWeightsService weightsService) {
+    public ScoreController(final PlayerScoreRepository repository,
+                           final ScoringWeightsService weightsService,
+                           final QuarantineIntegrationService quarantineIntegrationService) {
         this.repository = repository;
         this.weightsService = weightsService;
+        this.quarantineIntegrationService = quarantineIntegrationService;
     }
 
     /**
@@ -69,7 +78,7 @@ public class ScoreController {
             @PathVariable final String playerId,
             @RequestParam(defaultValue = "20") final int limit) {
         List<PlayerScoreRecord> history = repository.findByPlayerIdOrderByCalculatedAtDesc(
-                playerId, PageRequest.of(0, Math.min(100, Math.max(1, limit))));
+                playerId, PageRequest.of(0, Math.clamp(limit, 1, 100)));
 
         if (history.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Jogador não encontrado no histórico");
@@ -98,6 +107,33 @@ public class ScoreController {
     public ScoringWeights updateWeights(@RequestBody final ScoringWeights newWeights) {
         weightsService.updateWeights(newWeights);
         return newWeights;
+    }
+
+    /**
+     * Retorna um painel administrativo consolidado com flags e métricas recentes.
+     *
+     * @return Dashboard admin.
+     */
+    @GetMapping("/admin/dashboard")
+    public AdminDashboardView getAdminDashboard() {
+        ScoringWeights weights = weightsService.getWeights();
+        if (!weights.adminMonitoringEnabled()) {
+            return new AdminDashboardView(weights, 0L, 0L, List.of(), List.of());
+        }
+
+        long totalScores = repository.count();
+        long quarantinedScores = repository.countByQuarantineTriggeredTrue();
+        List<RecentScoreSignalView> recentSignals = repository.findTop10ByOrderByCalculatedAtDesc().stream()
+                .map(signal -> new RecentScoreSignalView(
+                        signal.getPlayerId(),
+                        signal.getTotalScore(),
+                        signal.isQuarantineTriggered(),
+                        signal.getCalculatedAt()))
+                .toList();
+
+        List<QuarantineHistoryView> quarantineHistory = quarantineIntegrationService.getLatestQuarantineStatus();
+
+        return new AdminDashboardView(weights, totalScores, quarantinedScores, recentSignals, quarantineHistory);
     }
 
     /**

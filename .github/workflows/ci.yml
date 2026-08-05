@@ -44,3 +44,6 @@ jobs:
 
       - name: Validar docker-compose
         run: docker compose config
+
+      - name: Build Docker images
+        run: docker compose build --parallel

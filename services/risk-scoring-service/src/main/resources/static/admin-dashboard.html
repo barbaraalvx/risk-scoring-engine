@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Risk Scoring Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --primary-accent: #6366f1;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 32px 16px;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s ease;
+        }
+
+        .card:hover { border-color: rgba(99, 102, 241, 0.3); }
+
+        .header-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-left: 4px solid var(--primary-accent);
+        }
+
+        .title-group h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .title-group p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+        .live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: var(--success-color);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success-color);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        h2 { font-size: 1.2rem; font-weight: 600; margin-bottom: 16px; color: #f1f5f9; display: flex; align-items: center; gap: 8px; }
+
+        .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+        .metric {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 18px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .metric h3 { font-size: 0.8rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+        .metric p { font-size: 1.8rem; font-weight: 700; color: #ffffff; }
+
+        .input-field { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 0.85rem; font-weight: 500; color: #cbd5e1; }
+        
+        input[type="number"] {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid #334155;
+            color: #ffffff;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        input[type="number"]:focus { border-color: var(--primary-accent); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+
+        .toggle-card {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: #cbd5e1; }
+        
+        /* Modern Switch Styling */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background: var(--primary-gradient); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+        button:hover { opacity: 0.95; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6); }
+
+        .table-responsive { overflow-x: auto; margin-top: 8px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 12px 16px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid #1e293b; }
+        td { padding: 14px 16px; font-size: 0.9rem; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #e2e8f0; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #6ee7b7; }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fde047; }
+        .status-ok { color: var(--success-color); font-weight: 600; }
+        .status-risk { color: var(--danger-color); font-weight: 600; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header Card -->
+    <div class="card header-card">
+        <div class="title-group">
+            <h1>Painel Admin - Risk Scoring Engine</h1>
+            <p>Monitoramento contínuo de fraudes, controle de Feature Flags e thresholds de quarentena em tempo real.</p>
+        </div>
+        <div class="live-badge">
+            <span class="pulse-dot"></span>
+            SISTEMA ATIVO (5s Auto-Refresh)
+        </div>
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="card">
+        <h2>📊 Resumo Operacional</h2>
+        <div class="grid" id="summary"></div>
+    </div>
+
+    <!-- Real-time Charts Section -->
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));">
+        <div class="card">
+            <h2>📈 Latência de Processamento do Motor (ms)</h2>
+            <div style="position: relative; height: 240px; margin-top: 10px;">
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h2>🎯 Distribuição dos Níveis de Risco</h2>
+            <div style="position: relative; height: 240px; margin-top: 10px;">
+                <canvas id="riskDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration Form -->
+    <div class="card">
+        <h2>⚙️ Configuração de Flags e Pesos de Scoring</h2>
+        <form id="weightsForm">
+            <div class="grid">
+                <div class="input-field">
+                    <label for="deviceWeight">Peso Device Fingerprint</label>
+                    <input id="deviceWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div class="input-field">
+                    <label for="velocityWeight">Peso Velocidade de Ação</label>
+                    <input id="velocityWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div class="input-field">
+                    <label for="patternWeight">Peso Padrão de Escolhas</label>
+                    <input id="patternWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div class="input-field">
+                    <label for="multiAccountWeight">Peso Multi-conta</label>
+                    <input id="multiAccountWeight" type="number" step="0.01" min="0" max="1">
+                </div>
+                <div class="input-field">
+                    <label for="quarantineThreshold">Threshold de Quarentena (0-100)</label>
+                    <input id="quarantineThreshold" type="number" step="1" min="0" max="100">
+                </div>
+            </div>
+            
+            <div class="grid" style="margin-top: 20px;">
+                <div class="toggle-card">
+                    <div class="toggle-row">
+                        <span>Device Rule (Fingerprint)</span>
+                        <label class="switch"><input id="deviceRuleEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Velocity Rule (Frequência)</span>
+                        <label class="switch"><input id="velocityRuleEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Choice Pattern Rule</span>
+                        <label class="switch"><input id="patternRuleEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                </div>
+                <div class="toggle-card">
+                    <div class="toggle-row">
+                        <span>Multi-account Rule (Conluio)</span>
+                        <label class="switch"><input id="multiAccountRuleEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Quarentena Automática</span>
+                        <label class="switch"><input id="quarantineEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                    <div class="toggle-row">
+                        <span>Monitoramento Admin</span>
+                        <label class="switch"><input id="adminMonitoringEnabled" type="checkbox"><span class="slider"></span></label>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                <button type="submit">💾 Salvar Alterações no Redis</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recent Signals Table -->
+    <div class="card">
+        <h2>⚡ Sinais Recentes de Risco</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Jogador</th>
+                    <th>Score Calculado</th>
+                    <th>Acionou Quarentena?</th>
+                    <th>Horário</th>
+                </tr>
+                </thead>
+                <tbody id="signalsBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Quarantine Status Table -->
+    <div class="card">
+        <h2>🛡️ Status de Quarentena por Jogador (Audit Trail)</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Jogador</th>
+                    <th>Status da SAGA</th>
+                    <th>Motivo do Isolamento</th>
+                </tr>
+                </thead>
+                <tbody id="quarantineBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configurações e Instâncias dos Gráficos Chart.js
+    const latencyHistory = [];
+    const timeLabels = [];
+    const maxDataPoints = 12;
+
+    const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+    const latencyChart = new Chart(ctxLatency, {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: [{
+                label: 'Latência de Resposta (ms)',
+                data: latencyHistory,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#818cf8'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 11 } }, beginAtZero: true }
+            }
+        }
+    });
+
+    const ctxRisk = document.getElementById('riskDistributionChart').getContext('2d');
+    const riskChart = new Chart(ctxRisk, {
+        type: 'doughnut',
+        data: {
+            labels: ['Baixo Risco (<25)', 'Risco Suspeito (25-69)', 'Quarentena (>=70)'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#cbd5e1', font: { family: 'Inter', size: 12 } } }
+            },
+            cutout: '70%'
+        }
+    });
+
+    function escapeHtml(value) {
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    async function loadDashboard() {
+        const startTime = performance.now();
+        try {
+            const response = await fetch('/api/v1/admin/dashboard');
+            const latency = Math.round(performance.now() - startTime);
+
+            if (!response.ok) return;
+            const dashboard = await response.json();
+
+            // Atualiza gráfico de latência em tempo real
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            timeLabels.push(nowTime);
+            latencyHistory.push(latency);
+            if (timeLabels.length > maxDataPoints) { timeLabels.shift(); latencyHistory.shift(); }
+            latencyChart.update();
+
+            // Atualiza resumo operacional
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <div class="metric"><h3>Total de Scores Processados</h3><p>${dashboard.totalScores}</p></div>
+                <div class="metric"><h3>Registros em Quarentena</h3><p style="color: var(--danger-color);">${dashboard.quarantinedScores}</p></div>
+                <div class="metric"><h3>Latência da API</h3><p style="color: var(--success-color);">${latency} <span style="font-size: 1rem; font-weight: 500;">ms</span></p></div>
+                <div class="metric"><h3>Threshold Atual</h3><p style="color: var(--primary-accent);">${dashboard.flags.quarantineThreshold}</p></div>
+            `;
+
+            const flags = dashboard.flags;
+            document.getElementById('deviceWeight').value = flags.deviceWeight;
+            document.getElementById('velocityWeight').value = flags.velocityWeight;
+            document.getElementById('patternWeight').value = flags.patternWeight;
+            document.getElementById('multiAccountWeight').value = flags.multiAccountWeight;
+            document.getElementById('quarantineThreshold').value = flags.quarantineThreshold;
+            document.getElementById('deviceRuleEnabled').checked = flags.deviceRuleEnabled;
+            document.getElementById('velocityRuleEnabled').checked = flags.velocityRuleEnabled;
+            document.getElementById('patternRuleEnabled').checked = flags.patternRuleEnabled;
+            document.getElementById('multiAccountRuleEnabled').checked = flags.multiAccountRuleEnabled;
+            document.getElementById('quarantineEnabled').checked = flags.quarantineEnabled;
+            document.getElementById('adminMonitoringEnabled').checked = flags.adminMonitoringEnabled;
+
+            // Processa estatísticas para o gráfico de distribuição de risco
+            let lowRisk = 0, medRisk = 0, highRisk = 0;
+            (dashboard.recentSignals || []).forEach(signal => {
+                if (signal.totalScore >= flags.quarantineThreshold) highRisk++;
+                else if (signal.totalScore >= 25) medRisk++;
+                else lowRisk++;
+            });
+            riskChart.data.datasets[0].data = [lowRisk, medRisk, highRisk];
+            riskChart.update();
+
+            const body = document.getElementById('signalsBody');
+            body.innerHTML = (dashboard.recentSignals || []).map(signal => `
+                <tr>
+                    <td style="font-weight: 600;">${escapeHtml(signal.playerId)}</td>
+                    <td><span style="font-weight: 700; color: ${signal.totalScore >= flags.quarantineThreshold ? 'var(--danger-color)' : 'var(--text-main)'}">${escapeHtml(signal.totalScore)}</span></td>
+                    <td>
+                        <span class="badge ${signal.quarantineTriggered ? 'badge-danger' : 'badge-success'}">
+                            ${signal.quarantineTriggered ? 'Sim' : 'Não'}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-muted);">${escapeHtml(new Date(signal.calculatedAt).toLocaleString('pt-BR'))}</td>
+                </tr>
+            `).join('');
+
+            const quarantineBody = document.getElementById('quarantineBody');
+            quarantineBody.innerHTML = (dashboard.quarantineHistory || []).map(item => `
+                <tr>
+                    <td style="font-weight: 600;">${escapeHtml(item.playerId)}</td>
+                    <td>
+                        <span class="badge ${item.status === 'QUARANTINED' ? 'badge-danger' : item.status === 'COMPENSATED' ? 'badge-warning' : 'badge-success'}">
+                            ${escapeHtml(item.status)}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-muted);">${escapeHtml(item.reason)}</td>
+                </tr>
+            `).join('');
+        } catch (e) {
+            console.error("Erro ao carregar dashboard:", e);
+        }
+    }
+
+    document.getElementById('weightsForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = {
+            deviceWeight: Number(document.getElementById('deviceWeight').value),
+            velocityWeight: Number(document.getElementById('velocityWeight').value),
+            patternWeight: Number(document.getElementById('patternWeight').value),
+            multiAccountWeight: Number(document.getElementById('multiAccountWeight').value),
+            quarantineThreshold: Number(document.getElementById('quarantineThreshold').value),
+            deviceRuleEnabled: document.getElementById('deviceRuleEnabled').checked,
+            velocityRuleEnabled: document.getElementById('velocityRuleEnabled').checked,
+            patternRuleEnabled: document.getElementById('patternRuleEnabled').checked,
+            multiAccountRuleEnabled: document.getElementById('multiAccountRuleEnabled').checked,
+            quarantineEnabled: document.getElementById('quarantineEnabled').checked,
+            adminMonitoringEnabled: document.getElementById('adminMonitoringEnabled').checked
+        };
+
+        await fetch('/api/v1/admin/scoring-weights', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        await loadDashboard();
+        alert('Configurações atualizadas com sucesso no Redis.');
+    });
+
+    // Auto-refresh a cada 5 segundos
+    loadDashboard();
+    setInterval(loadDashboard, 5000);
+</script>
+</body>
+</html>
