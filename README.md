@@ -9,6 +9,21 @@ O objetivo do projeto é construir um motor de *risk scoring* multifatorial capa
 *   **Simulação de Ataques:** Cenários controlados para mitigar ações de bots, multi-contas e conluios coordenados.
 *   **Painel Admin:** Integração com *flags* de administração para monitoramento e controle.
 
+---
+
+### 🏛️ Registros de Decisão de Arquitetura (ADRs)
+As decisões de arquitetura foram documentadas em arquivos dedicados na pasta `docs/adr/`, cobrindo desde a proposta inicial até a solução final:
+
+| ID | Título | Status | Padrão Arquitetural Relacionado |
+|----|--------|--------|---------------------------------|
+| [ADR-001](docs/adr/0001-event-sourcing-history.md) | Armazenamento do histórico de eventos de suspeita | Aceito | Event Sourcing |
+| [ADR-002](docs/adr/0002-quarantine-saga-orchestration.md) | Mecanismo de acionamento da quarentena automática | Aceito | SAGA (Orchestration Pattern) |
+| [ADR-003](docs/adr/0003-cqrs-read-write-separation.md) | Separação de leitura e escrita no painel administrativo | Aceito | CQRS |
+| [ADR-004](docs/adr/0004-technology-stack.md) | Stack tecnológica do projeto | Aceito | Microservices Architecture |
+| [ADR-005](docs/adr/0005-load-testing-and-attack-simulation.md) | Suíte de testes de carga e simulação de ataques em Python | Aceito | Performance & Attack Benchmarking |
+
+---
+
 ### 🛠️ Painel Admin e Flags de Administração
 O serviço de scoring expõe um endpoint administrativo para monitorar o estado geral do motor:
 
@@ -24,7 +39,7 @@ As flags administrativas incluem:
 - `quarantineEnabled`
 - `adminMonitoringEnabled`
 
-Essas flags permitem desativar regras individuais, suspender automaticamente a quarentena e controlar a observabilidade do painel sem reiniciar os serviços.
+---
 
 ### 🧪 Testes de Carga e Simulação de Fraudes
 O repositório inclui um script em Python para simulação dos 4 cenários de ataque e testes de estresse com relatórios de latência (P50, P95, P99) e vazão (RPS).
@@ -36,7 +51,7 @@ python scripts/load_test.py --scenario all
 # Teste de estresse com 1000 requisições e 30 workers concorrentes
 python scripts/load_test.py --scenario stress --requests 1000 --workers 30
 ```
-Para detalhes completos de uso e guia de observabilidade no Grafana/Prometheus, consulte [LOAD_TESTING.md](docs/LOAD_TESTING.md).
+Para o relatório estatístico completo de benchmarks e resultados dos testes, consulte [docs/TEST_REPORT.md](docs/TEST_REPORT.md) e [docs/LOAD_TESTING.md](docs/LOAD_TESTING.md).
 
 ---
 
@@ -65,10 +80,6 @@ Para detalhes completos de uso e guia de observabilidade no Grafana/Prometheus, 
 * `GET /quarantine/{playerId}` — estado atual de quarentena de um jogador
 * `GET /quarantine/{playerId}/history` — histórico de bloqueios do jogador
 
-### 🛠️ Observações
-* O serviço de scoring usa Redis e PostgreSQL para estado e persistência.
-* O painel admin se conecta ao serviço de quarentena para exibir status por jogador.
-
 ---
 
 ### 👥 Equipe
@@ -76,6 +87,8 @@ Para detalhes completos de uso e guia de observabilidade no Grafana/Prometheus, 
 * Fellype Dias Fontes - fellypedias2004@gmail.com
 * Thaís Melquíades Macêdo - thaismelquiades4@gmail.com
 * Tobias Freire Numeriano - tobias.freire@academico.ufpb.br
+
+---
 
 ### 🤖 Ferramentas de IA Utilizadas
 
@@ -97,4 +110,3 @@ Para o relatório detalhado com metodologias e análises, consulte [docs/AI_TOOL
 * Projeto 01 (26/06): Definição de Tema
 * Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
 * Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
-
