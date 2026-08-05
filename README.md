@@ -10,7 +10,7 @@ O objetivo do projeto é construir um motor de *risk scoring* multifatorial capa
 *   **Painel Admin:** Integração com *flags* de administração para monitoramento e controle.
 
 ### 🛠️ Painel Admin e Flags de Administração
-O serviço de scoring agora expõe um endpoint administrativo para monitorar o estado geral do motor:
+O serviço de scoring expõe um endpoint administrativo para monitorar o estado geral do motor:
 
 - `GET /api/v1/admin/dashboard` — retorna o painel consolidado com flags ativas, quantidade total de scores processados, quantidade de registros em quarentena e os sinais mais recentes.
 - `GET /api/v1/flags` — lista os pesos e thresholds atualmente aplicados.
@@ -26,17 +26,21 @@ As flags administrativas incluem:
 
 Essas flags permitem desativar regras individuais, suspender automaticamente a quarentena e controlar a observabilidade do painel sem reiniciar os serviços.
 
+### 🧪 Testes de Carga e Simulação de Fraudes
+O repositório inclui um script em Python para simulação dos 4 cenários de ataque e testes de estresse com relatórios de latência (P50, P95, P99) e vazão (RPS).
+
+```bash
+# Executar suíte completa de testes e carga
+python scripts/load_test.py --scenario all
+
+# Teste de estresse com 1000 requisições e 30 workers concorrentes
+python scripts/load_test.py --scenario stress --requests 1000 --workers 30
+```
+Para detalhes completos de uso e guia de observabilidade no Grafana/Prometheus, consulte [LOAD_TESTING.md](docs/LOAD_TESTING.md).
+
 ---
 
-### 👥 Equipe
-* Bárbara Geovanna Alves Cavalcante - barbara.gacavalcante@gmail.com
-* Fellype Dias Fontes - fellypedias2004@gmail.com
-* Thaís Melquíades Macêdo - thaismelquiades4@gmail.com
-* Tobias Freire Numeriano - tobias.freire@academico.ufpb.br
-
----
-
-### � Como executar o projeto completo
+### 🚀 Como executar o projeto completo
 1. Certifique-se de ter instalado:
    - Docker
    - Docker Compose
@@ -67,7 +71,15 @@ Essas flags permitem desativar regras individuais, suspender automaticamente a q
 
 ---
 
-### �📹 Apresentações e Entregas
+### 👥 Equipe
+* Bárbara Geovanna Alves Cavalcante - barbara.gacavalcante@gmail.com
+* Fellype Dias Fontes - fellypedias2004@gmail.com
+* Thaís Melquíades Macêdo - thaismelquiades4@gmail.com
+* Tobias Freire Numeriano - tobias.freire@academico.ufpb.br
+
+---
+
+### 📹 Apresentações e Entregas
 * Projeto 01 (26/06): Definição de Tema
-* Projeto 02 (10/07): Documentação Inicial & Arquitetura
-* Projeto 03 (07/08): Documentação Final & Solução Completa
+* Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
+* Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
