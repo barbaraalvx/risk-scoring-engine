@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Risk Scoring Engine — Apresentação POC 2</title>
+<style>
+  :root{
+    --bg-dark:#0b0f19;
+    --card-bg:rgba(17,24,39,0.85);
+    --card-border:rgba(255,255,255,0.12);
+    --primary-accent:#6366f1;
+    --success-color:#10b981;
+    --warning-color:#f59e0b;
+    --danger-color:#ef4444;
+    --text-main:#f8fafc;
+    --text-dim:#94a3b8;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;width:100%;height:100%;
+    background:var(--bg-dark);
+    font-family:'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+    color:var(--text-main);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body{
+    background:
+      radial-gradient(circle at 20% 15%, rgba(99,102,241,0.16), transparent 45%),
+      radial-gradient(circle at 85% 80%, rgba(16,185,129,0.10), transparent 45%),
+      var(--bg-dark);
+  }
+
+  /* ===== Stage / scaling rig (fixed 1280x720 design surface) ===== */
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #deck{
+    width:1280px;height:720px;position:relative;
+    transform-origin:center center;
+    flex:none;
+  }
+  .slide{
+    position:absolute;inset:0;
+    display:none;
+    flex-direction:column;
+    padding:56px 84px 46px;
+    background:var(--card-bg);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--card-border);
+    border-radius:18px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.55);
+    opacity:0;
+    transform:translateY(18px) scale(0.99);
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  .slide.active{display:flex;opacity:1;transform:translateY(0) scale(1);}
+
+  .kicker{
+    font-size:14px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--primary-accent);font-weight:700;margin-bottom:10px;
+  }
+  h1.title{font-size:40px;margin:0 0 6px;font-weight:800;line-height:1.15;}
+  h2.subtitle{font-size:19px;font-weight:400;color:var(--text-dim);margin:0 0 26px;}
+  h3.section-title{font-size:26px;margin:0 0 20px;font-weight:700;}
+  .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;}
+  p{line-height:1.55;}
+  ul{margin:0;padding-left:22px;line-height:1.6;}
+  li{margin-bottom:8px;}
+  .accent{color:var(--primary-accent);}
+  .success{color:var(--success-color);}
+  .warn{color:var(--warning-color);}
+  .danger{color:var(--danger-color);}
+
+  /* ===== Slide footer / branding ===== */
+  .footer-bar{
+    position:absolute;left:84px;right:84px;bottom:20px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--text-dim);
+    border-top:1px solid var(--card-border);padding-top:10px;
+  }
+  .footer-bar b{color:var(--text-main);}
+
+  /* ===== Controls ===== */
+  #nav-controls{
+    position:fixed;right:26px;bottom:22px;display:flex;gap:10px;z-index:50;
+  }
+  #progress-wrap{
+    position:fixed;left:0;top:0;width:100%;height:4px;background:rgba(255,255,255,0.06);z-index:60;
+  }
+  #progress-bar{height:100%;background:linear-gradient(90deg,var(--primary-accent),var(--success-color));width:0%;transition:width .35s ease;}
+  .nav-btn{
+    width:44px;height:44px;border-radius:50%;
+    background:var(--card-bg);border:1px solid var(--card-border);
+    color:var(--text-main);font-size:18px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    backdrop-filter:blur(10px);transition:.2s;
+  }
+  .nav-btn:hover{background:var(--primary-accent);border-color:var(--primary-accent);transform:translateY(-2px);}
+  #slide-counter{
+    position:fixed;left:26px;bottom:22px;z-index:50;
+    background:var(--card-bg);border:1px solid var(--card-border);
+    padding:9px 16px;border-radius:20px;font-size:13px;color:var(--text-dim);
+    backdrop-filter:blur(10px);
+  }
+  #slide-counter b{color:var(--text-main);}
+
+  /* ===== Slide 1 — Capa ===== */
+  #slide-1{align-items:center;justify-content:center;text-align:center;}
+  .cover-badge{
+    display:inline-block;padding:8px 22px;border-radius:24px;
+    background:rgba(99,102,241,0.15);border:1px solid var(--primary-accent);
+    color:var(--primary-accent);font-weight:700;letter-spacing:2px;font-size:13px;
+    margin-bottom:26px;text-transform:uppercase;
+  }
+  .cover-title{font-size:52px;font-weight:800;margin:0 0 16px;line-height:1.12;
+    background:linear-gradient(120deg,#f8fafc,#c7d2fe);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .cover-subtitle{font-size:20px;color:var(--text-dim);max-width:840px;margin:0 auto 40px;}
+  .team-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:900px;}
+  .team-card{
+    background:rgba(255,255,255,0.04);border:1px solid var(--card-border);
+    border-radius:14px;padding:16px 22px;min-width:190px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .team-avatar{
+    width:38px;height:38px;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary-accent),var(--success-color));
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex:none;
+  }
+  .team-name{font-size:14px;font-weight:600;text-align:left;}
+
+  /* ===== Generic two-col layout ===== */
+  .two-col{display:flex;gap:36px;flex:1;min-height:0;}
+  .col{flex:1;display:flex;flex-direction:column;gap:14px;min-width:0;}
+
+  /* ===== Slide 2 — problem cards ===== */
+  .problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .problem-card{
+    background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.28);
+    border-radius:12px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start;
+  }
+  .problem-icon{font-size:22px;flex:none;}
+  .mission-banner{
+    margin-top:6px;padding:18px 22px;border-radius:12px;
+    background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.35);
+    font-size:16px;line-height:1.5;
+  }
+
+  /* ===== Diagram boxes (C4) ===== */
+  .diagram{
+    flex:1;position:relative;border-radius:14px;
+    background:rgba(255,255,255,0.03);border:1px dashed var(--card-border);
+    padding:20px;overflow:hidden;
+  }
+  .dnode{
+    position:absolute;border-radius:10px;padding:10px 12px;font-size:12.5px;line-height:1.35;
+    text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:1px solid var(--card-border);font-weight:600;
+  }
+  .dnode small{display:block;font-weight:400;color:rgba(255,255,255,0.75);margin-top:3px;font-size:11px;}
+  .dnode.person{background:rgba(148,163,184,0.18);border-color:rgba(148,163,184,0.4);}
+  .dnode.system{background:rgba(99,102,241,0.22);border-color:var(--primary-accent);}
+  .dnode.container{background:rgba(99,102,241,0.16);border-color:var(--primary-accent);}
+  .dnode.store{background:rgba(16,185,129,0.16);border-color:var(--success-color);}
+  .dnode.rule{background:rgba(245,158,11,0.16);border-color:var(--warning-color);}
+  .dlabel{position:absolute;font-size:10.5px;color:var(--text-dim);background:rgba(11,15,25,0.85);padding:1px 6px;border-radius:6px;}
+
+  /* ===== Slide 6 — matrix table ===== */
+  table.matrix{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.matrix th{
+    text-align:left;padding:10px 12px;background:rgba(99,102,241,0.16);
+    border:1px solid var(--card-border);font-size:13px;
+  }
+  table.matrix td{padding:11px 12px;border:1px solid var(--card-border);vertical-align:top;line-height:1.45;}
+  table.matrix tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+
+  /* ===== Slide 7 — ADR tabs ===== */
+  .adr-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .adr-tab{
+    padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;
+    background:rgba(255,255,255,0.04);border:1px solid var(--card-border);color:var(--text-dim);
+    transition:.2s;
+  }
+  .adr-tab:hover{color:var(--text-main);}
+  .adr-tab.active{background:var(--primary-accent);border-color:var(--primary-accent);color:#fff;}
+  .adr-panel{display:none;flex:1;min-height:0;}
+  .adr-panel.active{display:flex;flex-direction:column;gap:10px;}
+  .adr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0;}
+  .adr-box{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.5;overflow:auto;}
+  .adr-box h4{margin:0 0 8px;font-size:13px;color:var(--primary-accent);text-transform:uppercase;letter-spacing:1px;}
+
+  /* ===== Slide 8 — SAGA sequence ===== */
+  .saga-wrap{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0;}
+  .saga-lanes{display:flex;justify-content:space-between;padding:0 6px;}
+  .lane-head{
+    flex:1;text-align:center;font-size:11.5px;font-weight:700;padding:8px 4px;
+    border-radius:8px;background:rgba(255,255,255,0.05);margin:0 3px;color:var(--text-dim);
+    border:1px solid var(--card-border);transition:.25s;
+  }
+  .lane-head.hot{background:rgba(99,102,241,0.28);color:#fff;border-color:var(--primary-accent);}
+  .saga-steps{flex:1;display:flex;flex-direction:column;gap:8px;justify-content:center;overflow:auto;}
+  .saga-step{
+    display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:9px;
+    background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+    font-size:13px;opacity:0.3;transform:translateX(-8px);transition:.35s;
+  }
+  .saga-step.on{opacity:1;transform:translateX(0);background:rgba(99,102,241,0.10);border-color:var(--primary-accent);}
+  .saga-step.branch-ok{border-left:3px solid var(--success-color);}
+  .saga-step.branch-danger{border-left:3px solid var(--danger-color);}
+  .step-num{
+    width:24px;height:24px;border-radius:50%;background:var(--primary-accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none;
+  }
+  .saga-controls{display:flex;gap:10px;align-items:center;justify-content:center;}
+  .saga-btn{
+    padding:8px 18px;border-radius:8px;border:1px solid var(--card-border);
+    background:rgba(255,255,255,0.05);color:var(--text-main);cursor:pointer;font-size:13px;font-weight:600;
+  }
+  .saga-btn:hover{background:var(--primary-accent);border-color:var(--primary-accent);}
+
+  /* ===== Slide 9 — Admin panel widgets ===== */
+  .panel-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px;flex:1;min-height:0;}
+  .widget{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+  .widget h4{margin:0;font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;}
+  .flag-row{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px solid var(--card-border);}
+  .switch{width:36px;height:20px;border-radius:12px;background:rgba(255,255,255,0.15);position:relative;cursor:pointer;flex:none;}
+  .switch.on{background:var(--success-color);}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.2s;}
+  .switch.on::after{left:18px;}
+  .weight-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+  .weight-row input[type=range]{flex:1;accent-color:var(--primary-accent);}
+  canvas{width:100%;height:100%;display:block;}
+  .donut-wrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;}
+  .donut-legend{display:flex;flex-direction:column;gap:6px;font-size:12px;position:absolute;bottom:0;left:0;right:0;}
+  .legend-item{display:flex;align-items:center;gap:6px;}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+
+  /* ===== Slide 10 — stats ===== */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+  .stat-card{
+    background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;
+    padding:18px;text-align:center;
+  }
+  .stat-value{font-size:30px;font-weight:800;color:var(--success-color);}
+  .stat-label{font-size:12px;color:var(--text-dim);margin-top:4px;}
+  .scenario-list{display:flex;flex-direction:column;gap:8px;}
+  .scenario-item{
+    display:flex;gap:12px;align-items:center;padding:9px 14px;border-radius:9px;
+    background:rgba(255,255,255,0.03);border:1px solid var(--card-border);font-size:13px;
+  }
+  .scenario-num{
+    width:22px;height:22px;border-radius:6px;background:var(--warning-color);color:#111;
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex:none;
+  }
+
+  /* ===== Slide 11 — AI declaration ===== */
+  .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0;}
+  .ai-card{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;padding:16px 18px;overflow:auto;}
+  .ai-card h4{margin:0 0 8px;font-size:14px;color:var(--primary-accent);}
+  .ai-card ul{font-size:12.8px;}
+  .eval-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin-right:6px;}
+  .eval-tag.success{background:rgba(16,185,129,0.18);color:var(--success-color);}
+  .eval-tag.warn{background:rgba(245,158,11,0.18);color:var(--warning-color);}
+  .eval-tag.danger{background:rgba(239,68,68,0.18);color:var(--danger-color);}
+
+  /* ===== Slide 12 — closing ===== */
+  #slide-12{align-items:center;justify-content:center;text-align:center;}
+  .deliv-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto 30px;}
+  .deliv-list li{
+    background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:10px;
+    padding:12px 18px;font-size:15px;display:flex;align-items:center;gap:10px;
+  }
+  .repo-link{
+    display:inline-block;margin-top:8px;padding:12px 26px;border-radius:10px;
+    background:var(--primary-accent);color:#fff;font-weight:700;text-decoration:none;font-size:15px;
+  }
+  .thanks{font-size:30px;font-weight:800;margin-top:22px;background:linear-gradient(120deg,#f8fafc,#a7f3d0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+
+  /* ===== Help overlay ===== */
+  #help-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;
+    display:none;align-items:center;justify-content:center;
+  }
+  #help-overlay.show{display:flex;}
+  #help-box{
+    background:var(--card-bg);border:1px solid var(--card-border);border-radius:16px;
+    padding:30px 36px;max-width:420px;backdrop-filter:blur(16px);
+  }
+  #help-box h3{margin-top:0;}
+  #help-box .k{display:inline-block;background:rgba(255,255,255,0.1);border-radius:5px;padding:2px 8px;font-family:monospace;margin-right:4px;}
+  #help-box li{margin-bottom:10px;font-size:14px;}
+
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:6px;}
+</style>
+</head>
+<body>
+
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+
+<div id="stage">
+<div id="deck">
+
+  <!-- ============ SLIDE 1 — CAPA ============ -->
+  <section class="slide active" id="slide-1">
+    <span class="cover-badge">POC 2 · Antifraude Mínimo Viável · ESD 2026.1</span>
+    <h1 class="cover-title">Risk Scoring Engine</h1>
+    <p class="cover-subtitle">Motor Antifraude em Tempo Real — Arquitetura Reativa de Microsserviços para
+      Detecção de Fraudes e Quarentena Automática</p>
+    <div class="team-grid">
+      <div class="team-card"><div class="team-avatar">BC</div><div class="team-name">Bárbara Geovanna<br>Alves Cavalcante</div></div>
+      <div class="team-card"><div class="team-avatar">FF</div><div class="team-name">Fellype Dias<br>Fontes</div></div>
+      <div class="team-card"><div class="team-avatar">TM</div><div class="team-name">Thaís Melquíades<br>Macêdo</div></div>
+      <div class="team-card"><div class="team-avatar">TN</div><div class="team-name">Tobias Freire<br>Numeriano</div></div>
+    </div>
+  </section>
+
+  <!-- ============ SLIDE 2 — CONTEXTO DO NEGÓCIO ============ -->
+  <section class="slide" id="slide-2">
+    <div class="kicker">Contexto de Negócio</div>
+    <h1 class="title">O Problema: Fraude em Jogos e Apostas Online</h1>
+    <h2 class="subtitle">Plataformas de alto volume transacional são alvo constante de automação maliciosa</h2>
+    <div class="content">
+      <div class="problem-grid">
+        <div class="problem-card"><span class="problem-icon">🤖</span><div><b>Bots Automatizados</b><br><small>Rajadas contínuas de requisições explorando bônus e promoções em velocidade sobre-humana.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">📱</span><div><b>Emuladores &amp; Root</b><br><small>Dispositivos móveis emulados ou celulares rooteados mascarando a origem real do acesso.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">🕸️</span><div><b>Multi-Account Collusion</b><br><small>Conluio de múltiplas contas compartilhando IP/dispositivo para fraudar bônus.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">💸</span><div><b>Saques Atípicos</b><br><small>Padrões de escolha e valores de saque fora do comportamento histórico do jogador.</small></div></div>
+      </div>
+      <div class="mission-banner">
+        🎯 <b>Missão da Arquitetura:</b> avaliar o risco de cada ação em <b class="success">menos de 50ms</b> e
+        isolar contas fraudulentas em <b class="success">Quarentena Automática</b>, com rastro de auditoria imutável.
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 02 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 3 — C4 NÍVEL 1 ============ -->
+  <section class="slide" id="slide-3">
+    <div class="kicker">Arquitetura C4 · Nível 1</div>
+    <h1 class="title">Diagrama de Contexto do Sistema</h1>
+    <h2 class="subtitle">Atores do ecossistema e os limites da plataforma antifraude</h2>
+    <div class="content">
+      <div class="diagram" id="c4-l1">
+        <div class="dnode person" style="left:2%;top:4%;width:18%;height:26%;">Plataforma de Jogos<small>Sistema Externo</small></div>
+        <div class="dnode person" style="left:2%;top:37%;width:18%;height:26%;">Administrador<small>Ator Humano</small></div>
+        <div class="dnode person" style="left:2%;top:70%;width:18%;height:26%;">Identity Provider<small>Sistema Externo</small></div>
+
+        <div class="dnode system" style="left:30%;top:15%;width:36%;height:70%;font-size:15px;">Risk Scoring Engine Platform<small style="margin-top:8px;">Motor antifraude: ingestão, scoring multifatorial<br>e orquestração de quarentena</small></div>
+
+        <div class="dnode person" style="left:78%;top:37%;width:20%;height:26%;">Painel Web Admin<small>Monitoramento &amp; Controle</small></div>
+
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line x1="20" y1="17" x2="30" y2="34" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="20" y1="50" x2="30" y2="52" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="20" y1="83" x2="30" y2="68" stroke="#f59e0b" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="66" y1="50" x2="78" y2="50" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        </svg>
+        <div class="dlabel" style="left:22%;top:26%;">REST API →</div>
+        <div class="dlabel" style="left:22%;top:47%;">HTTPS →</div>
+        <div class="dlabel" style="left:22%;top:73%;">Auth →</div>
+        <div class="dlabel" style="left:67%;top:44%;">Dados de risco →</div>
+      </div>
+      <ul>
+        <li>Integração via <b class="accent">API REST</b> com a Plataforma de Jogos para ingestão de telemetria em alto volume.</li>
+        <li><b class="accent">Barramento de eventos assíncrono</b> interno desacopla ingestão, scoring e quarentena.</li>
+        <li>Acesso do <b class="accent">Administrador</b> via Painel Web para monitoramento e ajuste de regras em tempo real.</li>
+      </ul>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 03 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 4 — C4 NÍVEL 2 ============ -->
+  <section class="slide" id="slide-4">
+    <div class="kicker">Arquitetura C4 · Nível 2</div>
+    <h1 class="title">Containers &amp; Microsserviços</h1>
+    <h2 class="subtitle">Separação de responsabilidades entre os containers Docker</h2>
+    <div class="content">
+      <div class="diagram" id="c4-l2">
+        <div class="dnode container" style="left:1%;top:56%;width:17%;height:32%;">Event Ingestion Service<small>Spring Boot / Kafka Producer</small></div>
+        <div class="dnode store" style="left:21%;top:56%;width:14%;height:32%;">Apache Kafka<small>Messaging &amp; Event Stream</small></div>
+        <div class="dnode container" style="left:39%;top:6%;width:19%;height:36%;">Risk Scoring Service<small>Scoring Engine + Redis Read Model</small></div>
+        <div class="dnode container" style="left:39%;top:58%;width:19%;height:36%;">Quarantine Service<small>SAGA Orchestrator + Audit Trail</small></div>
+        <div class="dnode store" style="left:61%;top:2%;width:14%;height:26%;">Redis<small>Cache / Read Model</small></div>
+        <div class="dnode store" style="left:61%;top:70%;width:14%;height:26%;">PostgreSQL<small>Write Model / Audit</small></div>
+        <div class="dnode person" style="left:80%;top:56%;width:18%;height:32%;">Painel Admin<small>Consome dashboard REST</small></div>
+
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <line x1="18" y1="72" x2="21" y2="72" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="35" y1="60" x2="39" y2="30" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="35" y1="68" x2="39" y2="72" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="18" x2="61" y2="14" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="80" x2="61" y2="82" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="76" x2="80" y2="72" stroke="#f59e0b" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+        </svg>
+      </div>
+      <ul>
+        <li><b>Event Ingestion Service</b> recebe ações do jogador via REST e publica no Kafka (produtor).</li>
+        <li><b>Risk Scoring Service</b> consome eventos, aplica as 4 regras de risco e mantém read model em Redis (CQRS).</li>
+        <li><b>Quarantine Service</b> orquestra a SAGA de bloqueio e mantém trilha de auditoria imutável no Postgres.</li>
+        <li>Persistência poliglota: <b class="success">PostgreSQL</b> (write/audit) + <b class="success">Redis</b> (cache/read model).</li>
+      </ul>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 04 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 5 — C4 NÍVEIS 3 e 4 ============ -->
+  <section class="slide" id="slide-5">
+    <div class="kicker">Arquitetura C4 · Níveis 3 e 4</div>
+    <h1 class="title">Componentes Internos &amp; Modelo de Classes</h1>
+    <h2 class="subtitle">Estrutura interna do módulo de scoring e o domínio de regras de risco</h2>
+    <div class="content two-col">
+      <div class="col">
+        <h3 class="section-title" style="font-size:16px;margin-bottom:8px;">Nível 3 — Componentes</h3>
+        <div class="diagram" id="c4-l3" style="flex:1;">
+          <div class="dnode container" style="left:2%;top:4%;width:55%;height:22%;font-size:12px;">ScoreController<small>REST API + DTOs Admin</small></div>
+          <div class="dnode rule" style="left:2%;top:34%;width:55%;height:22%;font-size:12px;">ScoringEngine<small>Soma ponderada &amp; normalização</small></div>
+          <div class="dnode rule" style="left:62%;top:6%;width:36%;height:52%;font-size:11.5px;line-height:1.3;">Regras de Risco<small>DeviceFingerprintRule<br>ActionVelocityRule<br>ChoicePatternRule<br>MultiAccountRule</small></div>
+          <div class="dnode container" style="left:2%;top:64%;width:55%;height:22%;font-size:12px;">PlayerScoreRepository<small>Spring Data JPA</small></div>
+          <div class="dnode store" style="left:62%;top:64%;width:36%;height:22%;font-size:12px;">Redis Read Model<small>CQRS</small></div>
+        </div>
+      </div>
+      <div class="col">
+        <h3 class="section-title" style="font-size:16px;margin-bottom:8px;">Nível 4 — Classes</h3>
+        <div class="diagram" id="c4-l4" style="flex:1;">
+          <div class="dnode rule" style="left:2%;top:4%;width:58%;height:22%;font-size:12px;">«interface» RiskRule<small>evaluate(GameEvent): int</small></div>
+          <div class="dnode container" style="left:2%;top:34%;width:27%;height:24%;font-size:10.5px;">DeviceFingerprintRule</div>
+          <div class="dnode container" style="left:32%;top:34%;width:28%;height:24%;font-size:10.5px;">ActionVelocityRule</div>
+          <div class="dnode container" style="left:2%;top:64%;width:27%;height:24%;font-size:10.5px;">ChoicePatternRule</div>
+          <div class="dnode container" style="left:32%;top:64%;width:28%;height:24%;font-size:10.5px;">MultiAccountRule</div>
+          <div class="dnode rule" style="left:65%;top:42%;width:33%;height:26%;font-size:11.5px;">ScoringEngine<small>List&lt;RiskRule&gt; rules</small></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:13px;margin-top:4px;">Pontos de destaque: injeção das 4 regras de risco via Spring, repositório JPA de scores e os DTOs consumidos pelo Painel Admin.</p>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 05 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 6 — MATRIZ DE ATENDIMENTO ============ -->
+  <section class="slide" id="slide-6">
+    <div class="kicker">Critérios do Professor</div>
+    <h1 class="title">Padrões Arquiteturais — Matriz de Atendimento</h1>
+    <h2 class="subtitle">Aderência às 5 áreas técnicas exigidas na especificação</h2>
+    <div class="content">
+      <table class="matrix">
+        <thead><tr><th style="width:20%;">Área Técnica</th><th>Padrões &amp; Tecnologias Aplicadas</th></tr></thead>
+        <tbody>
+          <tr><td>📈 Escalabilidade</td><td>Containerização Docker, comunicação assíncrona via Kafka, Isolation Pattern, Aggregator Pattern.</td></tr>
+          <tr><td>⚡ Desempenho</td><td>Arquitetura Event-Driven (EDA), CQRS (Read Model Redis), Cache-Aside, latência &lt; 30ms (P50).</td></tr>
+          <tr><td>🛡️ Confiabilidade</td><td>Circuit Breaker (Resilience4j), SAGA Orchestration, Event Sourcing (Audit Trail), Anti-Corruption Layer (ACL).</td></tr>
+          <tr><td>🚀 Deployment</td><td>Esteira CI/CD (GitHub Actions), imutabilidade Docker, Feature Flags com hot-reload (Redis).</td></tr>
+          <tr><td>🔒 Segurança &amp; Obs.</td><td>Device Fingerprinting, Audit Logging imutável, observabilidade com Prometheus &amp; Grafana.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 06 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 7 — ADRs ============ -->
+  <section class="slide" id="slide-7">
+    <div class="kicker">Decisões Arquiteturais</div>
+    <h1 class="title">ADR-001 a ADR-005</h1>
+    <h2 class="subtitle">Fundamentação das decisões e trade-offs avaliados</h2>
+    <div class="content">
+      <div class="adr-tabs">
+        <div class="adr-tab active" data-adr="1">ADR-001 · Event Sourcing</div>
+        <div class="adr-tab" data-adr="2">ADR-002 · SAGA</div>
+        <div class="adr-tab" data-adr="3">ADR-003 · CQRS</div>
+        <div class="adr-tab" data-adr="4">ADR-004 · Java 21 / Spring Boot 3</div>
+        <div class="adr-tab" data-adr="5">ADR-005 · Python Load Suite</div>
+      </div>
+
+      <div class="adr-panel active" id="adr-panel-1">
+        <div class="adr-grid">
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Toda ação do jogador precisa de auditoria imutável e rastreável. Optou-se por um <b>event store append-only</b> no Postgres (<code>player_events</code>) como log de origem, gravado antes de qualquer processamento de score.</div>
+          <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> estado mutável direto (sem trilha de auditoria). <b>Consequência aceita:</b> reconstrução completa de estado a partir do replay é incremento futuro — hoje o log é gravado e consultável, mas o estado corrente ainda é persistido de forma direta para atender ao prazo da POC.</div>
+        </div>
+      </div>
+
+      <div class="adr-panel" id="adr-panel-2">
+        <div class="adr-grid">
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Quarentena exige múltiplos passos coordenados entre serviços (persistir status, notificar, atualizar read model) sem transação distribuída. Escolhido <b>SAGA Orquestrada</b> — <code>QuarantineOrchestrator</code> comanda o fluxo e aplica compensação explícita em falha.</div>
+          <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> Coreografia (menor rastreabilidade, difícil auditar quem decidiu o quê) e 2PC (não escala, bloqueia sob partição). Idempotência garantida por <code>eventId</code>.</div>
+        </div>
+      </div>
+
+      <div class="adr-panel" id="adr-panel-3">
+        <div class="adr-grid">
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>O Painel Admin precisa de leitura ultrarrápida sem competir com o caminho de escrita sob carga. Adotado <b>CQRS</b> com projeção de leitura dedicada em Redis (<code>QuarantineProjectionService</code>).</div>
+          <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> consultar a tabela de escrita diretamente (contenção leitura/escrita) e réplica de leitura dedicada (infra pesada para o escopo da POC). Trade-off aceito: janela de consistência eventual.</div>
+        </div>
+      </div>
+
+      <div class="adr-panel" id="adr-panel-4">
+        <div class="adr-grid">
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Necessária stack moderna de alta concorrência para consumo de Kafka em tempo real. Escolhido <b>Java 21 + Spring Boot 3.3</b> nos três serviços, com Kafka, Redis, PostgreSQL e Resilience4j.</div>
+          <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> Node.js/NestJS (concorrência tipada mais fraca) e Go (ecossistema Spring-equivalente menor para prototipagem rápida). Stack única reduz custo de onboarding da equipe.</div>
+        </div>
+      </div>
+
+      <div class="adr-panel" id="adr-panel-5">
+        <div class="adr-grid">
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Necessário validar empiricamente a meta de latência (&lt;50ms) e simular ataques (bot, device, multi-conta, choice pattern). Escolhido <b>script Python standalone</b> (<code>load_test.py</code>) desacoplado da JVM, com <code>ThreadPoolExecutor</code>.</div>
+          <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> JMeter/Gatling (setup mais pesado para POC enxuta) e k6 (runtime extra). Python permitiu iteração rápida nos cenários e alimenta diretamente as métricas do Slide 10.</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 07 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 8 — SAGA SEQUENCE ============ -->
+  <section class="slide" id="slide-8">
+    <div class="kicker">Fluxograma Dinâmico</div>
+    <h1 class="title">Orquestração SAGA de Quarentena</h1>
+    <h2 class="subtitle">Fluxo reativo desde o evento de jogo até o bloqueio preventivo</h2>
+    <div class="content saga-wrap">
+      <div class="saga-lanes">
+        <div class="lane-head" data-lane="0">Ingestion Service</div>
+        <div class="lane-head" data-lane="1">Apache Kafka</div>
+        <div class="lane-head" data-lane="2">Risk Scoring Engine</div>
+        <div class="lane-head" data-lane="3">Quarantine Service</div>
+        <div class="lane-head" data-lane="4">Redis (Read Model)</div>
+        <div class="lane-head" data-lane="5">Postgres (Audit Trail)</div>
+      </div>
+      <div class="saga-steps" id="saga-steps">
+        <div class="saga-step" data-lanes="0,1"><div class="step-num">1</div>Ingestion dispara <b>GameEvent</b> (POST /events) para o Kafka.</div>
+        <div class="saga-step" data-lanes="1,2"><div class="step-num">2</div>Risk Scoring Engine consome o evento de forma assíncrona.</div>
+        <div class="saga-step" data-lanes="2,2"><div class="step-num">3</div>Avalia regras: Fingerprint + Velocity + Pattern + MultiAccount.</div>
+        <div class="saga-step branch-danger" data-lanes="2,1"><div class="step-num">4a</div><b class="danger">Score ≥ 70</b> → publica <b>ScoreUpdatedEvent</b> (quarantineTriggered = true).</div>
+        <div class="saga-step branch-danger" data-lanes="1,3"><div class="step-num">5a</div>SAGA Orchestrator do Quarantine Service inicia o isolamento.</div>
+        <div class="saga-step branch-danger" data-lanes="3,5"><div class="step-num">6a</div>Persiste status <b>QUARANTINED</b> + motivo no Postgres (Audit Trail).</div>
+        <div class="saga-step branch-danger" data-lanes="3,4"><div class="step-num">7a</div>Atualiza estado do jogador no Read Model (Redis).</div>
+        <div class="saga-step branch-ok" data-lanes="2,4"><div class="step-num">4b</div><b class="success">Score &lt; 70</b> → atualiza score normal diretamente no cache (Redis).</div>
+      </div>
+      <div class="saga-controls">
+        <button class="saga-btn" id="saga-prev">◀ Passo Anterior</button>
+        <span id="saga-count" style="font-size:12px;color:var(--text-dim);">Passo 0 / 8</span>
+        <button class="saga-btn" id="saga-next">Próximo Passo ▶</button>
+        <button class="saga-btn" id="saga-reset">↺ Reiniciar</button>
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 08 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 9 — PAINEL ADMIN ============ -->
+  <section class="slide" id="slide-9">
+    <div class="kicker">Operação em Produção</div>
+    <h1 class="title">Painel Admin &amp; Hot-Reload de Feature Flags</h1>
+    <h2 class="subtitle">Controle operacional sem necessidade de reiniciar a aplicação</h2>
+    <div class="content panel-grid">
+      <div class="widget">
+        <h4>Pesos &amp; Flags (Redis)</h4>
+        <div class="flag-row">deviceRuleEnabled <div class="switch on" data-flag></div></div>
+        <div class="flag-row">velocityRuleEnabled <div class="switch on" data-flag></div></div>
+        <div class="flag-row">patternRuleEnabled <div class="switch" data-flag></div></div>
+        <div class="flag-row">multiAccountRuleEnabled <div class="switch on" data-flag></div></div>
+        <div class="flag-row">quarantineEnabled <div class="switch on" data-flag></div></div>
+        <div class="weight-row">Device <input type="range" min="0" max="100" value="20"><span>0.20</span></div>
+        <div class="weight-row">Velocity <input type="range" min="0" max="100" value="25"><span>0.25</span></div>
+        <div class="weight-row">Threshold <input type="range" min="0" max="100" value="70"><span>70</span></div>
+      </div>
+      <div class="widget">
+        <h4>Latência da API (ms) — Tempo Real</h4>
+        <canvas id="latency-chart"></canvas>
+      </div>
+      <div class="widget">
+        <h4>Distribuição dos Níveis de Risco</h4>
+        <div class="donut-wrap"><canvas id="donut-chart" width="220" height="220"></canvas></div>
+        <div style="display:flex;gap:10px;justify-content:center;font-size:11.5px;">
+          <span class="legend-item"><span class="dot" style="background:#10b981;"></span>Normal</span>
+          <span class="legend-item"><span class="dot" style="background:#f59e0b;"></span>Suspeito</span>
+          <span class="legend-item"><span class="dot" style="background:#ef4444;"></span>Quarentena</span>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 09 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 10 — TESTES DE CARGA ============ -->
+  <section class="slide" id="slide-10">
+    <div class="kicker">Validação Empírica</div>
+    <h1 class="title">Simulação de Ataques &amp; Testes de Carga</h1>
+    <h2 class="subtitle">Dados estatísticos reais coletados via <code>load_test.py</code></h2>
+    <div class="content two-col">
+      <div class="col">
+        <h3 class="section-title" style="font-size:15px;margin-bottom:6px;">5 Cenários de Carga Executados</h3>
+        <div class="scenario-list">
+          <div class="scenario-item"><div class="scenario-num">1</div>Bot Velocity Attack (rajada contínua).</div>
+          <div class="scenario-item"><div class="scenario-num">2</div>Device Fingerprint Anomaly (emuladores / root).</div>
+          <div class="scenario-item"><div class="scenario-num">3</div>Multi-Account Collusion (mesmo IP / dispositivo).</div>
+          <div class="scenario-item"><div class="scenario-num">4</div>Choice Pattern Anomalies (saques atípicos de alto valor).</div>
+          <div class="scenario-item"><div class="scenario-num">5</div>Concurrent Stress Test (500+ requisições concorrentes).</div>
+        </div>
+      </div>
+      <div class="col">
+        <h3 class="section-title" style="font-size:15px;margin-bottom:6px;">Resultados de Desempenho</h3>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value">&gt;80</div><div class="stat-label">Throughput (req/s)</div></div>
+          <div class="stat-card"><div class="stat-value">&lt;30ms</div><div class="stat-label">Latência P50</div></div>
+          <div class="stat-card"><div class="stat-value">&lt;83ms</div><div class="stat-label">Latência P95</div></div>
+          <div class="stat-card"><div class="stat-value">0%</div><div class="stat-label">Taxa de Erro</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 10 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 11 — IA ============ -->
+  <section class="slide" id="slide-11">
+    <div class="kicker">Transparência Obrigatória</div>
+    <h1 class="title">Declaração de Uso de Inteligência Artificial</h1>
+    <h2 class="subtitle">Atendimento integral ao critério eliminatório da Seção 5 do edital</h2>
+    <div class="content ai-grid">
+      <div class="ai-card"><h4>1. Ferramentas</h4><ul>
+        <li>Google Antigravity IDE</li><li>Claude AI &amp; Claude Code (com Agent Starter Kit)</li>
+        <li>ChatGPT (GPT-5.5)</li><li>GitHub Copilot</li></ul></div>
+      <div class="ai-card"><h4>2. Atuação</h4><ul>
+        <li>Estruturação de boilerplate Spring Boot</li>
+        <li>Diagnósticos de compilação em IDE</li>
+        <li>Relatórios estatísticos dos testes de carga</li>
+        <li>Documentação de ADRs</li></ul></div>
+      <div class="ai-card"><h4>3. Orientação</h4><ul>
+        <li>In-Context Learning</li>
+        <li>Prompts incrementais com validação a cada etapa</li>
+        <li>Personas especializadas por domínio técnico</li></ul></div>
+      <div class="ai-card"><h4>4. Avaliação Honestamente Detalhada</h4>
+        <p><span class="eval-tag success">Sucessos</span>Desenvolvimento incremental com testes constantes e diagnósticos precisos.</p>
+        <p><span class="eval-tag warn">Ajustes</span>Refinamento de prompts que exigiam contexto estendido de múltiplos arquivos.</p>
+        <p><span class="eval-tag danger">Descartes</span>Loop engineering totalmente autônomo (consumo elevado de tokens e compilações incompletas).</p>
+      </div>
+    </div>
+    <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 11 / 12</span></div>
+  </section>
+
+  <!-- ============ SLIDE 12 — CONCLUSÃO ============ -->
+  <section class="slide" id="slide-12">
+    <div class="kicker" style="text-align:center;">Encerramento</div>
+    <h1 class="title" style="text-align:center;">Conclusão</h1>
+    <ul class="deliv-list">
+      <li>✅ Sistema distribuído completo e containerizado em Docker Compose.</li>
+      <li>✅ Pipeline CI/CD automatizada no GitHub Actions com status verde.</li>
+      <li>✅ Repositório público com histórico de commits detalhado.</li>
+    </ul>
+    <a class="repo-link" href="https://github.com/barbaraalvx/risk-scoring-engine" target="_blank" rel="noopener">github.com/barbaraalvx/risk-scoring-engine</a>
+    <div class="thanks">Obrigado! Perguntas?</div>
+  </section>
+
+</div><!-- /deck -->
+</div><!-- /stage -->
+
+<div id="slide-counter"><b id="cur-slide">1</b> / <span id="total-slides">12</span></div>
+<div id="nav-controls">
+  <button class="nav-btn" id="btn-prev" title="Voltar (←)">◀</button>
+  <button class="nav-btn" id="btn-fullscreen" title="Tela cheia (F)">⛶</button>
+  <button class="nav-btn" id="btn-next" title="Avançar (→)">▶</button>
+</div>
+
+<div id="help-overlay">
+  <div id="help-box">
+    <h3>Controles do Apresentador</h3>
+    <ul>
+      <li><span class="k">→</span><span class="k">Espaço</span><span class="k">PgDn</span><span class="k">N</span> Avançar slide</li>
+      <li><span class="k">←</span><span class="k">PgUp</span><span class="k">P</span> Voltar slide</li>
+      <li><span class="k">F</span> Alternar tela cheia</li>
+      <li><span class="k">H</span> / <span class="k">?</span> Mostrar/ocultar esta ajuda</li>
+      <li><span class="k">Esc</span> Fechar ajuda</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var total = slides.length;
+  var current = 0;
+
+  var deck = document.getElementById('deck');
+  var stage = document.getElementById('stage');
+  var progressBar = document.getElementById('progress-bar');
+  var curSlideEl = document.getElementById('cur-slide');
+  document.getElementById('total-slides').textContent = total;
+
+  function scaleDeck(){
+    var sw = stage.clientWidth, sh = stage.clientHeight;
+    var scale = Math.min(sw/1280, sh/720);
+    deck.style.transform = 'scale(' + scale + ')';
+  }
+  window.addEventListener('resize', scaleDeck);
+  scaleDeck();
+
+  function goTo(idx){
+    if(idx < 0 || idx >= total) return;
+    slides[current].classList.remove('active');
+    current = idx;
+    slides[current].classList.add('active');
+    curSlideEl.textContent = current + 1;
+    progressBar.style.width = ((current+1)/total*100) + '%';
+  }
+  function next(){ goTo(current+1); }
+  function prev(){ goTo(current-1); }
+
+  document.getElementById('btn-next').addEventListener('click', next);
+  document.getElementById('btn-prev').addEventListener('click', prev);
+
+  function toggleFullscreen(){
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(function(){});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+  document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+
+  var helpOverlay = document.getElementById('help-overlay');
+  function toggleHelp(){ helpOverlay.classList.toggle('show'); }
+
+  window.addEventListener('keydown', function(e){
+    var tag = (e.target && e.target.tagName) || '';
+    if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+    switch(e.key){
+      case 'ArrowRight': case ' ': case 'PageDown': case 'n': case 'N':
+        e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': case 'p': case 'P':
+        e.preventDefault(); prev(); break;
+      case 'f': case 'F':
+        toggleFullscreen(); break;
+      case 'h': case 'H': case '?':
+        toggleHelp(); break;
+      case 'Escape':
+        helpOverlay.classList.remove('show'); break;
+    }
+  });
+
+  // ===== Feature flag switches (slide 9) =====
+  document.querySelectorAll('.switch[data-flag]').forEach(function(sw){
+    sw.addEventListener('click', function(){ sw.classList.toggle('on'); });
+  });
+
+  // ===== Latency line chart (canvas, vanilla) =====
+  var latencyCanvas = document.getElementById('latency-chart');
+  var latencyData = [];
+  for(var i=0;i<40;i++){ latencyData.push(18 + Math.random()*14); }
+  function drawLatencyChart(){
+    if(!latencyCanvas) return;
+    var ctx = latencyCanvas.getContext('2d');
+    var w = latencyCanvas.clientWidth, h = latencyCanvas.clientHeight;
+    latencyCanvas.width = w * devicePixelRatio;
+    latencyCanvas.height = h * devicePixelRatio;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
+    ctx.clearRect(0,0,w,h);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    for(var gy=0; gy<=4; gy++){
+      var y = (h-20) * gy/4 + 10;
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+    }
+    var max = 50, min = 0;
+    var stepX = w/(latencyData.length-1);
+    ctx.beginPath();
+    latencyData.forEach(function(v, idx){
+      var x = idx*stepX;
+      var y = h - 10 - ((v-min)/(max-min))*(h-20);
+      if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2.2;
+    ctx.stroke();
+    // fill under curve
+    ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+    var grad = ctx.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0, 'rgba(99,102,241,0.35)');
+    grad.addColorStop(1, 'rgba(99,102,241,0)');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    // last point marker
+    var lastX = (latencyData.length-1)*stepX;
+    var lastY = h - 10 - ((latencyData[latencyData.length-1]-min)/(max-min))*(h-20);
+    ctx.beginPath(); ctx.arc(lastX,lastY,4,0,Math.PI*2);
+    ctx.fillStyle = '#10b981'; ctx.fill();
+  }
+  setInterval(function(){
+    latencyData.shift();
+    latencyData.push(18 + Math.random()*14);
+    drawLatencyChart();
+  }, 900);
+  drawLatencyChart();
+
+  // ===== Donut chart (canvas, vanilla) =====
+  var donutCanvas = document.getElementById('donut-chart');
+  function drawDonut(){
+    if(!donutCanvas) return;
+    var ctx = donutCanvas.getContext('2d');
+    var w = donutCanvas.width, h = donutCanvas.height;
+    ctx.clearRect(0,0,w,h);
+    var cx = w/2, cy = h/2, r = Math.min(w,h)/2 - 10;
+    var data = [
+      {v:72, color:'#10b981'},
+      {v:20, color:'#f59e0b'},
+      {v:8,  color:'#ef4444'}
+    ];
+    var total = data.reduce(function(a,b){return a+b.v;},0);
+    var start = -Math.PI/2;
+    data.forEach(function(seg){
+      var angle = (seg.v/total)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,start,start+angle);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      start += angle;
+    });
+    ctx.beginPath();
+    ctx.arc(cx,cy,r*0.58,0,Math.PI*2);
+    ctx.fillStyle = getComputedStyle(document.body).backgroundColor || '#0b0f19';
+    ctx.fillStyle = '#11182799';
+    ctx.fill();
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 20px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('72%', cx, cy-8);
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillText('Normal', cx, cy+12);
+  }
+  drawDonut();
+
+  // ===== ADR Tabs (slide 7) =====
+  document.querySelectorAll('.adr-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      var id = tab.getAttribute('data-adr');
+      document.querySelectorAll('.adr-tab').forEach(function(t){ t.classList.remove('active'); });
+      document.querySelectorAll('.adr-panel').forEach(function(p){ p.classList.remove('active'); });
+      tab.classList.add('active');
+      document.getElementById('adr-panel-'+id).classList.add('active');
+    });
+  });
+
+  // ===== SAGA sequence stepper (slide 8) =====
+  var sagaSteps = Array.prototype.slice.call(document.querySelectorAll('.saga-step'));
+  var sagaLanes = Array.prototype.slice.call(document.querySelectorAll('.lane-head'));
+  var sagaIdx = 0;
+  function renderSaga(){
+    sagaSteps.forEach(function(s, i){ s.classList.toggle('on', i < sagaIdx); });
+    sagaLanes.forEach(function(l){ l.classList.remove('hot'); });
+    if(sagaIdx > 0){
+      var lanes = sagaSteps[sagaIdx-1].getAttribute('data-lanes').split(',');
+      lanes.forEach(function(li){ sagaLanes[parseInt(li,10)].classList.add('hot'); });
+    }
+    document.getElementById('saga-count').textContent = 'Passo ' + sagaIdx + ' / ' + sagaSteps.length;
+  }
+  document.getElementById('saga-next').addEventListener('click', function(){
+    if(sagaIdx < sagaSteps.length){ sagaIdx++; renderSaga(); }
+  });
+  document.getElementById('saga-prev').addEventListener('click', function(){
+    if(sagaIdx > 0){ sagaIdx--; renderSaga(); }
+  });
+  document.getElementById('saga-reset').addEventListener('click', function(){
+    sagaIdx = 0; renderSaga();
+  });
+  renderSaga();
+
+})();
+</script>
+
+</body>
+</html>
