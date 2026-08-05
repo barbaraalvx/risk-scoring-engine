@@ -77,9 +77,24 @@ Para detalhes completos de uso e guia de observabilidade no Grafana/Prometheus, 
 * Thaís Melquíades Macêdo - thaismelquiades4@gmail.com
 * Tobias Freire Numeriano - tobias.freire@academico.ufpb.br
 
+### 🤖 Ferramentas de IA Utilizadas
+
+Abaixo está o resumo do uso de Ferramentas de Inteligência Artificial Generativa no projeto, conforme as diretrizes da disciplina:
+
+* **1. Ferramentas Utilizadas:** Google Antigravity IDE (Gemini 3.6 Flash / Sonnet 4.6), Claude AI & Claude Code (Sonnet 5 + Agent Starter Kit), ChatGPT (GPT-5.5) e GitHub Copilot (GPT-5.3 Codex).
+* **2. Atuação no Trabalho:** Geração inicial de código Java Spring Boot, diagnóstico amplo de erros integrados no VSCode/IDE, arquitetura (ADRs, CQRS/SAGA), criação dos scripts de teste de carga em Python e redação da documentação técnica.
+* **3. Orientação da IA (Prompts e Contexto):** Uso de *In-Context Learning* (passando exemplos de código e especificações junto aos prompts), desenvolvimento incremental passo a passo validado via Docker Compose, e *harness* de agentes com 5 personas especializadas (*Agent Starter Kit*).
+* **4. Avaliação Honesta:**
+  - **O que funcionou:** Desenvolvimento incremental, análise de erros com contexto amplo da IDE e geração automatizada de relatórios estatísticos de testes de carga.
+  - **O que precisou de correção:** Código gerado por prompts isolados sem o contexto completo do projeto e desalinhamento na ordem de dependências de tarefas sugeridas pelas LLMs.
+  - **O que foi descartado:** *Loop engineering* totalmente autônomo, devido ao consumo excessivo de tokens e geração de código inacabado que quebrava o build da aplicação.
+
+Para o relatório detalhado com metodologias e análises, consulte [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
+
 ---
 
 ### 📹 Apresentações e Entregas
 * Projeto 01 (26/06): Definição de Tema
 * Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
 * Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
+
