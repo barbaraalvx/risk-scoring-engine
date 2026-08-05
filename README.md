@@ -36,7 +36,7 @@ Essas flags permitem desativar regras individuais, suspender automaticamente a q
 
 ---
 
-### � Como executar o projeto completo
+### 🚀 Como executar o projeto completo
 1. Certifique-se de ter instalado:
    - Docker
    - Docker Compose
@@ -67,7 +67,7 @@ Essas flags permitem desativar regras individuais, suspender automaticamente a q
 
 ---
 
-### �📹 Apresentações e Entregas
+### 📹 Apresentações e Entregas
 * Projeto 01 (26/06): Definição de Tema
 * Projeto 02 (10/07): Documentação Inicial & Arquitetura
 * Projeto 03 (07/08): Documentação Final & Solução Completa
