@@ -36,7 +36,38 @@ Essas flags permitem desativar regras individuais, suspender automaticamente a q
 
 ---
 
-### 📹 Apresentações e Entregas
+### � Como executar o projeto completo
+1. Certifique-se de ter instalado:
+   - Docker
+   - Docker Compose
+2. Na raiz do repositório, execute:
+   ```bash
+   docker compose up --build
+   ```
+3. Aguarde todos os serviços subirem.
+
+### 🌐 URLs de acesso
+* Event ingestion service: `http://localhost:8080`
+* Risk scoring service: `http://localhost:8081`
+* Quarantine service: `http://localhost:8082`
+* Admin dashboard: `http://localhost:8081/admin-dashboard.html`
+* Prometheus: `http://localhost:9090`
+* Grafana: `http://localhost:3000`
+
+### 🧠 Endpoints principais
+* `GET /api/v1/admin/dashboard` — painel administrativo consolidado
+* `GET /api/v1/flags` — flags e pesos ativos do scoring
+* `PUT /api/v1/admin/scoring-weights` — atualiza pesos, threshold e flags em tempo real
+* `GET /quarantine/{playerId}` — estado atual de quarentena de um jogador
+* `GET /quarantine/{playerId}/history` — histórico de bloqueios do jogador
+
+### 🛠️ Observações
+* O serviço de scoring usa Redis e PostgreSQL para estado e persistência.
+* O painel admin se conecta ao serviço de quarentena para exibir status por jogador.
+
+---
+
+### �📹 Apresentações e Entregas
 * Projeto 01 (26/06): Definição de Tema (Este arquivo)
 * Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
 * Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
