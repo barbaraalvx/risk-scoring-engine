@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #0b0f19;
@@ -198,6 +199,22 @@
         <div class="grid" id="summary"></div>
     </div>
 
+    <!-- Real-time Charts Section -->
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));">
+        <div class="card">
+            <h2>📈 Latência de Processamento do Motor (ms)</h2>
+            <div style="position: relative; height: 240px; margin-top: 10px;">
+                <canvas id="latencyChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <h2>🎯 Distribuição dos Níveis de Risco</h2>
+            <div style="position: relative; height: 240px; margin-top: 10px;">
+                <canvas id="riskDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Configuration Form -->
     <div class="card">
         <h2>⚙️ Configuração de Flags e Pesos de Scoring</h2>
@@ -299,18 +316,83 @@
 </div>
 
 <script>
+    // Configurações e Instâncias dos Gráficos Chart.js
+    const latencyHistory = [];
+    const timeLabels = [];
+    const maxDataPoints = 12;
+
+    const ctxLatency = document.getElementById('latencyChart').getContext('2d');
+    const latencyChart = new Chart(ctxLatency, {
+        type: 'line',
+        data: {
+            labels: timeLabels,
+            datasets: [{
+                label: 'Latência de Resposta (ms)',
+                data: latencyHistory,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.15)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointBackgroundColor: '#818cf8'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 11 } }, beginAtZero: true }
+            }
+        }
+    });
+
+    const ctxRisk = document.getElementById('riskDistributionChart').getContext('2d');
+    const riskChart = new Chart(ctxRisk, {
+        type: 'doughnut',
+        data: {
+            labels: ['Baixo Risco (<25)', 'Risco Suspeito (25-69)', 'Quarentena (>=70)'],
+            datasets: [{
+                data: [0, 0, 0],
+                backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right', labels: { color: '#cbd5e1', font: { family: 'Inter', size: 12 } } }
+            },
+            cutout: '70%'
+        }
+    });
+
     async function loadDashboard() {
+        const startTime = performance.now();
         try {
             const response = await fetch('/api/v1/admin/dashboard');
+            const latency = Math.round(performance.now() - startTime);
+
             if (!response.ok) return;
             const dashboard = await response.json();
 
+            // Atualiza gráfico de latência em tempo real
+            const nowTime = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            timeLabels.push(nowTime);
+            latencyHistory.push(latency);
+            if (timeLabels.length > maxDataPoints) { timeLabels.shift(); latencyHistory.shift(); }
+            latencyChart.update();
+
+            // Atualiza resumo operacional
             const summary = document.getElementById('summary');
             summary.innerHTML = `
                 <div class="metric"><h3>Total de Scores Processados</h3><p>${dashboard.totalScores}</p></div>
                 <div class="metric"><h3>Registros em Quarentena</h3><p style="color: var(--danger-color);">${dashboard.quarantinedScores}</p></div>
+                <div class="metric"><h3>Latência da API</h3><p style="color: var(--success-color);">${latency} <span style="font-size: 1rem; font-weight: 500;">ms</span></p></div>
                 <div class="metric"><h3>Threshold Atual</h3><p style="color: var(--primary-accent);">${dashboard.flags.quarantineThreshold}</p></div>
-                <div class="metric"><h3>Status do Painel</h3><p class="${dashboard.flags.adminMonitoringEnabled ? 'status-ok' : 'status-risk'}">${dashboard.flags.adminMonitoringEnabled ? 'ATIVO' : 'SUSPENSO'}</p></div>
             `;
 
             const flags = dashboard.flags;
@@ -325,6 +407,16 @@
             document.getElementById('multiAccountRuleEnabled').checked = flags.multiAccountRuleEnabled;
             document.getElementById('quarantineEnabled').checked = flags.quarantineEnabled;
             document.getElementById('adminMonitoringEnabled').checked = flags.adminMonitoringEnabled;
+
+            // Processa estatísticas para o gráfico de distribuição de risco
+            let lowRisk = 0, medRisk = 0, highRisk = 0;
+            (dashboard.recentSignals || []).forEach(signal => {
+                if (signal.totalScore >= flags.quarantineThreshold) highRisk++;
+                else if (signal.totalScore >= 25) medRisk++;
+                else lowRisk++;
+            });
+            riskChart.data.datasets[0].data = [lowRisk, medRisk, highRisk];
+            riskChart.update();
 
             const body = document.getElementById('signalsBody');
             body.innerHTML = (dashboard.recentSignals || []).map(signal => `
@@ -389,4 +481,3 @@
 </script>
 </body>
 </html>
-
