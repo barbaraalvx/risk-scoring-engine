@@ -63,7 +63,7 @@ public class ScoringEngine {
                 + (multiAccountScore * weights.multiAccountWeight());
 
         // Escala normalizada para (0 - 100)
-        int totalScore = Math.clamp(Math.round(weightedSum * 4.0), 0, 100);
+        int totalScore = (int) Math.clamp(Math.round(weightedSum * 4.0), 0, 100);
 
         boolean quarantineTriggered = weights.quarantineEnabled()
                 && totalScore >= weights.quarantineThreshold();
