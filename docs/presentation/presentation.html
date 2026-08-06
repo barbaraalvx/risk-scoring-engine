@@ -56,17 +56,22 @@
   }
   .slide.active{display:flex;opacity:1;transform:translateY(0) scale(1);}
 
+  .slide > .title{order:0;}
+  .slide > .kicker{order:1;}
+  .slide > .subtitle{order:2;}
+  .slide > .content{order:3;}
+
   .kicker{
-    font-size:14px;letter-spacing:3px;text-transform:uppercase;
+    font-size:15px;letter-spacing:3px;text-transform:uppercase;
     color:var(--primary-accent);font-weight:700;margin-bottom:10px;
   }
-  h1.title{font-size:40px;margin:0 0 6px;font-weight:800;line-height:1.15;}
-  h2.subtitle{font-size:19px;font-weight:400;color:var(--text-dim);margin:0 0 26px;}
-  h3.section-title{font-size:26px;margin:0 0 20px;font-weight:700;}
-  .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:18px;}
-  p{line-height:1.55;}
-  ul{margin:0;padding-left:22px;line-height:1.6;}
-  li{margin-bottom:8px;}
+  h1.title{font-size:46px;margin:0 0 6px;font-weight:800;line-height:1.12;}
+  h2.subtitle{font-size:22px;font-weight:400;color:var(--text-dim);margin:0 0 24px;line-height:1.45;}
+  h3.section-title{font-size:28px;margin:0 0 20px;font-weight:700;}
+  .content{flex:1;min-height:0;display:flex;flex-direction:column;gap:20px;font-size:16.5px;}
+  p{line-height:1.58;font-size:16.5px;}
+  ul{margin:0;padding-left:22px;line-height:1.62;font-size:16px;}
+  li{margin-bottom:10px;}
   .accent{color:var(--primary-accent);}
   .success{color:var(--success-color);}
   .warn{color:var(--warning-color);}
@@ -113,9 +118,9 @@
     color:var(--primary-accent);font-weight:700;letter-spacing:2px;font-size:13px;
     margin-bottom:26px;text-transform:uppercase;
   }
-  .cover-title{font-size:52px;font-weight:800;margin:0 0 16px;line-height:1.12;
+  .cover-title{font-size:58px;font-weight:800;margin:0 0 16px;line-height:1.08;
     background:linear-gradient(120deg,#f8fafc,#c7d2fe);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .cover-subtitle{font-size:20px;color:var(--text-dim);max-width:840px;margin:0 auto 40px;}
+  .cover-subtitle{font-size:22px;color:var(--text-dim);max-width:840px;margin:0 auto 40px;line-height:1.5;}
   .team-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:900px;}
   .team-card{
     background:rgba(255,255,255,0.04);border:1px solid var(--card-border);
@@ -138,12 +143,13 @@
   .problem-card{
     background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.28);
     border-radius:12px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start;
+    font-size:18px;line-height:1.5;
   }
   .problem-icon{font-size:22px;flex:none;}
   .mission-banner{
     margin-top:6px;padding:18px 22px;border-radius:12px;
     background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.35);
-    font-size:16px;line-height:1.5;
+    font-size:20px;line-height:1.5;
   }
 
   /* ===== Diagram boxes (C4) ===== */
@@ -166,18 +172,18 @@
   .dlabel{position:absolute;font-size:10.5px;color:var(--text-dim);background:rgba(11,15,25,0.85);padding:1px 6px;border-radius:6px;}
 
   /* ===== Slide 6 — matrix table ===== */
-  table.matrix{width:100%;border-collapse:collapse;font-size:13.5px;}
-  table.matrix th{
+  #slide-6 table.matrix{width:100%;border-collapse:collapse;font-size:18px;}
+  #slide-6 table.matrix th{
     text-align:left;padding:10px 12px;background:rgba(99,102,241,0.16);
-    border:1px solid var(--card-border);font-size:13px;
+    border:1px solid var(--card-border);font-size:16px;
   }
-  table.matrix td{padding:11px 12px;border:1px solid var(--card-border);vertical-align:top;line-height:1.45;}
-  table.matrix tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+  #slide-6 table.matrix td{padding:14px 15px;border:1px solid var(--card-border);vertical-align:top;line-height:1.55;}
+  #slide-6 table.matrix tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
 
   /* ===== Slide 7 — ADR tabs ===== */
   .adr-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
   .adr-tab{
-    padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;
+    padding:10px 17px;border-radius:9px;font-size:14.5px;font-weight:600;cursor:pointer;
     background:rgba(255,255,255,0.04);border:1px solid var(--card-border);color:var(--text-dim);
     transition:.2s;
   }
@@ -186,8 +192,8 @@
   .adr-panel{display:none;flex:1;min-height:0;}
   .adr-panel.active{display:flex;flex-direction:column;gap:10px;}
   .adr-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;min-height:0;}
-  .adr-box{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.5;overflow:auto;}
-  .adr-box h4{margin:0 0 8px;font-size:13px;color:var(--primary-accent);text-transform:uppercase;letter-spacing:1px;}
+  .adr-box{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:10px;padding:18px 20px;font-size:20px;line-height:1.62;overflow:auto;}
+  .adr-box h4{margin:0 0 10px;font-size:24px;color:var(--primary-accent);text-transform:uppercase;letter-spacing:1px;}
 
   /* ===== Slide 8 — SAGA sequence ===== */
   .saga-wrap{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0;}
@@ -246,7 +252,7 @@
   .scenario-list{display:flex;flex-direction:column;gap:8px;}
   .scenario-item{
     display:flex;gap:12px;align-items:center;padding:9px 14px;border-radius:9px;
-    background:rgba(255,255,255,0.03);border:1px solid var(--card-border);font-size:13px;
+    background:rgba(255,255,255,0.03);border:1px solid var(--card-border);font-size:18px;
   }
   .scenario-num{
     width:22px;height:22px;border-radius:6px;background:var(--warning-color);color:#111;
@@ -255,26 +261,28 @@
 
   /* ===== Slide 11 — AI declaration ===== */
   .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;min-height:0;}
-  .ai-card{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;padding:16px 18px;overflow:auto;}
-  .ai-card h4{margin:0 0 8px;font-size:14px;color:var(--primary-accent);}
-  .ai-card ul{font-size:12.8px;}
-  .eval-tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;margin-right:6px;}
+  .ai-card{background:rgba(255,255,255,0.03);border:1px solid var(--card-border);border-radius:12px;padding:18px 20px;overflow:auto;}
+  .ai-card h4{margin:0 0 10px;font-size:24px;color:var(--primary-accent);}
+  .ai-card ul{font-size:18px;line-height:1.62;padding-left:20px;}
+  .ai-card li{margin-bottom:10px;}
+  .ai-card p{font-size:18px;line-height:1.62;}
+  .eval-tag{display:inline-block;font-size:13px;font-weight:700;padding:3px 6px;border-radius:3px;margin-right:3px;}
   .eval-tag.success{background:rgba(16,185,129,0.18);color:var(--success-color);}
   .eval-tag.warn{background:rgba(245,158,11,0.18);color:var(--warning-color);}
   .eval-tag.danger{background:rgba(239,68,68,0.18);color:var(--danger-color);}
 
   /* ===== Slide 12 — closing ===== */
   #slide-12{align-items:center;justify-content:center;text-align:center;}
-  .deliv-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto 30px;}
+  .deliv-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:14px;max-width:1000px;margin:0 auto 30px;}
   .deliv-list li{
     background:rgba(255,255,255,0.04);border:1px solid var(--card-border);border-radius:10px;
-    padding:12px 18px;font-size:15px;display:flex;align-items:center;gap:10px;
+    padding:15px 20px;font-size:24px;display:flex;align-items:center;gap:12px;line-height:1.45;
   }
   .repo-link{
     display:inline-block;margin-top:8px;padding:12px 26px;border-radius:10px;
-    background:var(--primary-accent);color:#fff;font-weight:700;text-decoration:none;font-size:15px;
+    background:var(--primary-accent);color:#fff;font-weight:700;text-decoration:none;font-size:16.5px;
   }
-  .thanks{font-size:30px;font-weight:800;margin-top:22px;background:linear-gradient(120deg,#f8fafc,#a7f3d0);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .thanks{font-size:34px;font-weight:800;margin-top:22px;background:linear-gradient(120deg,#f8fafc,#a7f3d0);-webkit-background-clip:text;background-clip:text;color:transparent;}
 
   /* ===== Help overlay ===== */
   #help-overlay{
@@ -432,7 +440,9 @@
         </div>
       </div>
     </div>
+    <!--
     <p style="font-size:13px;margin-top:4px;">Pontos de destaque: injeção das 4 regras de risco via Spring, repositório JPA de scores e os DTOs consumidos pelo Painel Admin.</p>
+    -->
     <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 05 / 12</span></div>
   </section>
 
@@ -583,7 +593,7 @@
     <h2 class="subtitle">Dados estatísticos reais coletados via <code>load_test.py</code></h2>
     <div class="content two-col">
       <div class="col">
-        <h3 class="section-title" style="font-size:15px;margin-bottom:6px;">5 Cenários de Carga Executados</h3>
+        <h3 class="section-title" style="font-size:20px;margin-bottom:6px;">5 Cenários de Carga Executados</h3>
         <div class="scenario-list">
           <div class="scenario-item"><div class="scenario-num">1</div>Bot Velocity Attack (rajada contínua).</div>
           <div class="scenario-item"><div class="scenario-num">2</div>Device Fingerprint Anomaly (emuladores / root).</div>
@@ -593,7 +603,7 @@
         </div>
       </div>
       <div class="col">
-        <h3 class="section-title" style="font-size:15px;margin-bottom:6px;">Resultados de Desempenho</h3>
+        <h3 class="section-title" style="font-size:20px;margin-bottom:6px;">Resultados de Desempenho</h3>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-value">&gt;80</div><div class="stat-label">Throughput (req/s)</div></div>
           <div class="stat-card"><div class="stat-value">&lt;30ms</div><div class="stat-label">Latência P50</div></div>
@@ -634,14 +644,18 @@
 
   <!-- ============ SLIDE 12 — CONCLUSÃO ============ -->
   <section class="slide" id="slide-12">
-    <div class="kicker" style="text-align:center;">Encerramento</div>
+  <!-- div class="kicker" style="text-align:center;">Encerramento</div> -->
+    </br>
     <h1 class="title" style="text-align:center;">Conclusão</h1>
+    </br>
     <ul class="deliv-list">
       <li>✅ Sistema distribuído completo e containerizado em Docker Compose.</li>
       <li>✅ Pipeline CI/CD automatizada no GitHub Actions com status verde.</li>
       <li>✅ Repositório público com histórico de commits detalhado.</li>
     </ul>
+    </br>
     <a class="repo-link" href="https://github.com/barbaraalvx/risk-scoring-engine" target="_blank" rel="noopener">github.com/barbaraalvx/risk-scoring-engine</a>
+    </br>
     <div class="thanks">Obrigado! Perguntas?</div>
   </section>
 
