@@ -455,7 +455,7 @@
 
   <!-- ============ SLIDE 6 — MATRIZ DE ATENDIMENTO ============ -->
   <section class="slide" id="slide-6">
-    <div class="kicker">Critérios do Professor</div>
+    <div class="kicker">Tópicos Técnicos por Área</div>
     <h1 class="title">Padrões Arquiteturais — Matriz de Atendimento</h1>
     <h2 class="subtitle">Aderência às 5 áreas técnicas exigidas na especificação</h2>
     <div class="content">
@@ -517,7 +517,7 @@
 
       <div class="adr-panel" id="adr-panel-5">
         <div class="adr-grid">
-          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Necessário validar empiricamente a meta de latência (&lt;50ms) e simular ataques (bot, device, multi-conta, choice pattern). Escolhido <b>script Python standalone</b> (<code>load_test.py</code>) desacoplado da JVM, com <code>ThreadPoolExecutor</code>.</div>
+          <div class="adr-box"><h4>Contexto &amp; Decisão</h4>Necessário validar empiricamente a meta de latência (&lt;50ms) e simular ataques (bot, device, multi-conta, choice pattern). Escolhido <b>script Python standalone</b> script de teste de carga desacoplado da JVM, com <code>ThreadPoolExecutor</code>.</div>
           <div class="adr-box"><h4>Alternativas &amp; Trade-offs</h4><b>Rejeitado:</b> JMeter/Gatling (setup mais pesado para POC enxuta) e k6 (runtime extra). Python permitiu iteração rápida nos cenários e alimenta diretamente as métricas do Slide 10.</div>
         </div>
       </div>
@@ -597,7 +597,7 @@
   <section class="slide" id="slide-10">
     <div class="kicker">Validação Empírica</div>
     <h1 class="title">Simulação de Ataques &amp; Testes de Carga</h1>
-    <h2 class="subtitle">Dados estatísticos reais coletados via <code>load_test.py</code></h2>
+    <h2 class="subtitle">Dados estatísticos reais coletados via script de teste de carga</h2>
     <div class="content two-col">
       <div class="col">
         <h3 class="section-title" style="font-size:20px;margin-bottom:6px;">5 Cenários de Carga Executados</h3>
@@ -624,7 +624,7 @@
 
   <!-- ============ SLIDE 11 — IA ============ -->
   <section class="slide" id="slide-11">
-    <div class="kicker">Transparência Obrigatória</div>
+    <div class="kicker">Ferramentas de IA utilizadas</div>
     <h1 class="title">Declaração de Uso de Inteligência Artificial</h1>
     <h2 class="subtitle">Atendimento integral ao critério eliminatório da Seção 5 do edital</h2>
     <div class="content ai-grid">
@@ -653,7 +653,7 @@
   <section class="slide" id="slide-12">
   <!-- div class="kicker" style="text-align:center;">Encerramento</div> -->
     </br>
-    <h1 class="title" style="text-align:center;">Conclusão</h1>
+    <h1 class="title" style="text-align:center;font-size:58px;line-height:1.05;letter-spacing:-0.03em;margin-bottom:18px;">Conclusão</h1>
     </br>
     <ul class="deliv-list">
       <li>• Sistema distribuído completo e containerizado em Docker Compose.</li>
