@@ -542,12 +542,12 @@
       <div class="saga-steps" id="saga-steps">
         <div class="saga-step" data-lanes="0,1"><div class="step-num">1</div>Ingestion dispara <b>GameEvent</b> (POST /events) para o Kafka.</div>
         <div class="saga-step" data-lanes="1,2"><div class="step-num">2</div>Risk Scoring Engine consome o evento de forma assíncrona.</div>
-        <div class="saga-step" data-lanes="2,2"><div class="step-num">3</div>Avalia regras: Fingerprint + Velocity + Pattern + MultiAccount.</div>
-        <div class="saga-step branch-danger" data-lanes="2,1"><div class="step-num">4a</div><b class="danger">Score ≥ 70</b> → publica <b>ScoreUpdatedEvent</b> (quarantineTriggered = true).</div>
-        <div class="saga-step branch-danger" data-lanes="1,3"><div class="step-num">5a</div>SAGA Orchestrator do Quarantine Service inicia o isolamento.</div>
-        <div class="saga-step branch-danger" data-lanes="3,5"><div class="step-num">6a</div>Persiste status <b>QUARANTINED</b> + motivo no Postgres (Audit Trail).</div>
-        <div class="saga-step branch-danger" data-lanes="3,4"><div class="step-num">7a</div>Atualiza estado do jogador no Read Model (Redis).</div>
-        <div class="saga-step branch-ok" data-lanes="2,4"><div class="step-num">4b</div><b class="success">Score &lt; 70</b> → atualiza score normal diretamente no cache (Redis).</div>
+        <div class="saga-step" data-lanes="1,2"><div class="step-num">3</div>Avalia regras: Fingerprint + Velocity + Pattern + MultiAccount e Publica <b>ScoreUpdatedEvent</b>.</div>
+        <div class="saga-step" data-lanes="1,3"><div class="step-num">5</div>SAGA Orchestrator do Quarantine Service consome o evento e avalia o Score.</div>
+        <div class="saga-step branch-ok" data-lanes="3,4"><div class="step-num">6a</div><b class="success">Score &lt; 70</b> → atualiza score normal diretamente no cache (Redis).</div>
+        <div class="saga-step branch-danger" data-lanes="3"><div class="step-num">6b</div><b class="danger">Score ≥ 70</b> Inicia processo de quarentena.</div>
+        <div class="saga-step branch-danger" data-lanes="3,5"><div class="step-num">7b</div>Persiste status <b>QUARANTINED</b> + motivo no Postgres (Audit Trail).</div>
+        <div class="saga-step branch-danger" data-lanes="3,4"><div class="step-num">8b</div>Atualiza estado do jogador no Read Model (Redis).</div>
       </div>
       <div class="saga-controls">
         <button class="saga-btn" id="saga-prev">◀ Passo Anterior</button>
