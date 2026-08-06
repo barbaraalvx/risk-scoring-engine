@@ -1,6 +1,6 @@
 # 📊 Guia de Execução: Testes de Carga e Simulação de Cenários Antifraude
 
-Este documento descreve como executar o script de testes de carga e simulação automatizada dos **4 cenários de fraude da POC 2**, bem como coletar métricas para a entrega final da disciplina de **Engenharia de Sistemas Distribuídos (ESD - 2026.1)**.
+Este documento descreve como executar o script de testes de carga e simulação automatizada dos **4 cenários de fraude da POC 2 + 1 cenário de estresse concorrente**, bem como coletar métricas para a entrega final da disciplina de **Engenharia de Sistemas Distribuídos (ESD - 2026.1)**.
 
 ---
 

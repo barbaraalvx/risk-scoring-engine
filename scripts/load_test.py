@@ -3,7 +3,7 @@
 Script de Teste de Carga e Simulação dos Cenários de Fraude (POC 2 - Antifraude Mínimo Viável)
 Disciplina: Engenharia de Sistemas Distribuídos (ESD - 2026.1)
 
-Este script realiza testes de estresse e simulação automatizada dos 4 cenários de ataque
+Este script realiza testes de estresse e simulação automatizada dos 5 cenários de ataque
 previstos na especificação do projeto contra a API do event-ingestion-service.
 
 Cenários contemplados:
