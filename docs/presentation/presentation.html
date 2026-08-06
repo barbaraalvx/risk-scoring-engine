@@ -151,6 +151,12 @@
     background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.35);
     font-size:20px;line-height:1.5;
   }
+  .highlight-box{
+    margin-top:2px;padding:14px 18px;border-radius:10px;
+    background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.34);
+    font-size:14px;line-height:1.58;
+  }
+  .highlight-box b{color:var(--primary-accent);}
 
   /* ===== Diagram boxes (C4) ===== */
   .diagram{
@@ -381,32 +387,33 @@
   <!-- ============ SLIDE 4 — C4 NÍVEL 2 ============ -->
   <section class="slide" id="slide-4">
     <div class="kicker">Arquitetura C4 · Nível 2</div>
-    <h1 class="title">Containers &amp; Microsserviços</h1>
-    <h2 class="subtitle">Separação de responsabilidades entre os containers Docker</h2>
+    <h1 class="title">Contêineres &amp; Microsserviços</h1>
+    <h2 class="subtitle">Separação de responsabilidades entre os contêineres Docker</h2>
     <div class="content">
       <div class="diagram" id="c4-l2">
-        <div class="dnode container" style="left:1%;top:56%;width:17%;height:32%;">Event Ingestion Service<small>Spring Boot / Kafka Producer</small></div>
-        <div class="dnode store" style="left:21%;top:56%;width:14%;height:32%;">Apache Kafka<small>Messaging &amp; Event Stream</small></div>
-        <div class="dnode container" style="left:39%;top:6%;width:19%;height:36%;">Risk Scoring Service<small>Scoring Engine + Redis Read Model</small></div>
-        <div class="dnode container" style="left:39%;top:58%;width:19%;height:36%;">Quarantine Service<small>SAGA Orchestrator + Audit Trail</small></div>
-        <div class="dnode store" style="left:61%;top:2%;width:14%;height:26%;">Redis<small>Cache / Read Model</small></div>
-        <div class="dnode store" style="left:61%;top:70%;width:14%;height:26%;">PostgreSQL<small>Write Model / Audit</small></div>
-        <div class="dnode person" style="left:80%;top:56%;width:18%;height:32%;">Painel Admin<small>Consome dashboard REST</small></div>
+        <div class="dnode container" style="left:1%;top:56%;width:17%;height:32%;">Event Ingestion Service<small>Spring Boot / produtor Kafka</small></div>
+        <div class="dnode store" style="left:21%;top:56%;width:14%;height:32%;">Kafka<small>Mensageria e fluxo de eventos</small></div>
+        <div class="dnode container" style="left:39%;top:6%;width:19%;height:36%;">Risk Scoring Service<small>motor de pontuação + modelo de leitura Redis</small></div>
+        <div class="dnode container" style="left:39%;top:58%;width:19%;height:36%;">Quarantine Service<small>orquestrador SAGA + trilha de auditoria</small></div>
+        <div class="dnode store" style="left:61%;top:2%;width:14%;height:20%;">Redis<small>cache / modelo de leitura</small></div>
+        <div class="dnode store" style="left:62%;top:74%;width:12%;height:18%;">PostgreSQL<small>modelo de escrita / auditoria</small></div>
+        <div class="dnode person" style="left:75%;top:47%;width:18%;height:30%;">Painel Admin<small>consome dashboard REST</small></div>
 
         <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 100 100" preserveAspectRatio="none">
           <line x1="18" y1="72" x2="21" y2="72" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
           <line x1="35" y1="60" x2="39" y2="30" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
           <line x1="35" y1="68" x2="39" y2="72" stroke="#6366f1" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
           <line x1="58" y1="18" x2="61" y2="14" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
-          <line x1="58" y1="80" x2="61" y2="82" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
-          <line x1="58" y1="76" x2="80" y2="72" stroke="#f59e0b" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="80" x2="62" y2="82" stroke="#10b981" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="28" x2="75" y2="52" stroke="#f59e0b" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+          <line x1="58" y1="76" x2="75" y2="62" stroke="#f59e0b" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
         </svg>
       </div>
       <ul>
         <li><b>Event Ingestion Service</b> recebe ações do jogador via REST e publica no Kafka (produtor).</li>
-        <li><b>Risk Scoring Service</b> consome eventos, aplica as 4 regras de risco e mantém read model em Redis (CQRS).</li>
+        <li><b>Risk Scoring Service</b> consome eventos, aplica as 4 regras de risco e mantém o modelo de leitura no Redis (CQRS).</li>
         <li><b>Quarantine Service</b> orquestra a SAGA de bloqueio e mantém trilha de auditoria imutável no Postgres.</li>
-        <li>Persistência poliglota: <b class="success">PostgreSQL</b> (write/audit) + <b class="success">Redis</b> (cache/read model).</li>
+        <li>Persistência poliglota: <b class="success">PostgreSQL</b> (escrita/auditoria) + <b class="success">Redis</b> (cache/modelo de leitura).</li>
       </ul>
     </div>
     <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 04 / 12</span></div>
@@ -421,7 +428,7 @@
       <div class="col">
         <h3 class="section-title" style="font-size:16px;margin-bottom:8px;">Nível 3 — Componentes</h3>
         <div class="diagram" id="c4-l3" style="flex:1;">
-          <div class="dnode container" style="left:2%;top:4%;width:55%;height:22%;font-size:12px;">ScoreController<small>REST API + DTOs Admin</small></div>
+          <div class="dnode container" style="left:2%;top:4%;width:55%;height:22%;font-size:14px;">ScoreController<small>REST API + DTOs Admin</small></div>
           <div class="dnode rule" style="left:2%;top:34%;width:55%;height:22%;font-size:12px;">ScoringEngine<small>Soma ponderada &amp; normalização</small></div>
           <div class="dnode rule" style="left:62%;top:6%;width:36%;height:52%;font-size:11.5px;line-height:1.3;">Regras de Risco<small>DeviceFingerprintRule<br>ActionVelocityRule<br>ChoicePatternRule<br>MultiAccountRule</small></div>
           <div class="dnode container" style="left:2%;top:64%;width:55%;height:22%;font-size:12px;">PlayerScoreRepository<small>Spring Data JPA</small></div>
@@ -431,18 +438,18 @@
       <div class="col">
         <h3 class="section-title" style="font-size:16px;margin-bottom:8px;">Nível 4 — Classes</h3>
         <div class="diagram" id="c4-l4" style="flex:1;">
-          <div class="dnode rule" style="left:2%;top:4%;width:58%;height:22%;font-size:12px;">«interface» RiskRule<small>evaluate(GameEvent): int</small></div>
-          <div class="dnode container" style="left:2%;top:34%;width:27%;height:24%;font-size:10.5px;">DeviceFingerprintRule</div>
-          <div class="dnode container" style="left:32%;top:34%;width:28%;height:24%;font-size:10.5px;">ActionVelocityRule</div>
-          <div class="dnode container" style="left:2%;top:64%;width:27%;height:24%;font-size:10.5px;">ChoicePatternRule</div>
-          <div class="dnode container" style="left:32%;top:64%;width:28%;height:24%;font-size:10.5px;">MultiAccountRule</div>
-          <div class="dnode rule" style="left:65%;top:42%;width:33%;height:26%;font-size:11.5px;">ScoringEngine<small>List&lt;RiskRule&gt; rules</small></div>
+          <div class="dnode rule" style="left:2%;top:4%;width:58%;height:30%;font-size:14px;">«interface» RiskRule<small>evaluate(GameEvent): int</small></div>
+          <div class="dnode container" style="left:2%;top:34%;width:27%;height:30%;font-size:10.5px;">DeviceFingerprintRule</div>
+          <div class="dnode container" style="left:32%;top:34%;width:28%;height:30%;font-size:10.5px;">ActionVelocityRule</div>
+          <div class="dnode container" style="left:2%;top:64%;width:27%;height:30%;font-size:10.5px;">ChoicePatternRule</div>
+          <div class="dnode container" style="left:32%;top:64%;width:28%;height:30%;font-size:10.5px;">MultiAccountRule</div>
+          <div class="dnode rule" style="left:65%;top:42%;width:33%;height:30%;font-size:11.5px;">ScoringEngine<small>List&lt;RiskRule&gt; rules</small></div>
+        </div>
+        <div class="highlight-box">
+          <b>Ponto de destaque:</b> injeção das 4 regras de risco via Spring, repositório JPA de scores e os DTOs consumidos pelo Painel Admin.
         </div>
       </div>
     </div>
-    <!--
-    <p style="font-size:13px;margin-top:4px;">Pontos de destaque: injeção das 4 regras de risco via Spring, repositório JPA de scores e os DTOs consumidos pelo Painel Admin.</p>
-    -->
     <div class="footer-bar"><span>Risk Scoring Engine — POC 2</span><span>Slide 05 / 12</span></div>
   </section>
 
