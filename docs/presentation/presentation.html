@@ -145,7 +145,7 @@
     border-radius:12px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start;
     font-size:18px;line-height:1.5;
   }
-  .problem-icon{font-size:22px;flex:none;}
+  .problem-icon{font-size:24px;line-height:1;flex:none;color:var(--primary-accent);font-weight:700;}
   .mission-banner{
     margin-top:6px;padding:18px 22px;border-radius:12px;
     background:rgba(16,185,129,0.10);border:1px solid rgba(16,185,129,0.35);
@@ -330,13 +330,13 @@
     <h2 class="subtitle">Plataformas de alto volume transacional são alvo constante de automação maliciosa</h2>
     <div class="content">
       <div class="problem-grid">
-        <div class="problem-card"><span class="problem-icon">🤖</span><div><b>Bots Automatizados</b><br><small>Rajadas contínuas de requisições explorando bônus e promoções em velocidade sobre-humana.</small></div></div>
-        <div class="problem-card"><span class="problem-icon">📱</span><div><b>Emuladores &amp; Root</b><br><small>Dispositivos móveis emulados ou celulares rooteados mascarando a origem real do acesso.</small></div></div>
-        <div class="problem-card"><span class="problem-icon">🕸️</span><div><b>Multi-Account Collusion</b><br><small>Conluio de múltiplas contas compartilhando IP/dispositivo para fraudar bônus.</small></div></div>
-        <div class="problem-card"><span class="problem-icon">💸</span><div><b>Saques Atípicos</b><br><small>Padrões de escolha e valores de saque fora do comportamento histórico do jogador.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">•</span><div><b>Bots Automatizados</b><br><small>Rajadas contínuas de requisições explorando bônus e promoções em velocidade sobre-humana.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">•</span><div><b>Emuladores &amp; Root</b><br><small>Dispositivos móveis emulados ou celulares rooteados mascarando a origem real do acesso.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">•</span><div><b>Multi-Account Collusion</b><br><small>Conluio de múltiplas contas compartilhando IP/dispositivo para fraudar bônus.</small></div></div>
+        <div class="problem-card"><span class="problem-icon">•</span><div><b>Saques Atípicos</b><br><small>Padrões de escolha e valores de saque fora do comportamento histórico do jogador.</small></div></div>
       </div>
       <div class="mission-banner">
-        🎯 <b>Missão da Arquitetura:</b> avaliar o risco de cada ação em <b class="success">menos de 50ms</b> e
+        • <b>Missão da Arquitetura:</b> avaliar o risco de cada ação em <b class="success">menos de 50ms</b> e
         isolar contas fraudulentas em <b class="success">Quarentena Automática</b>, com rastro de auditoria imutável.
       </div>
     </div>
@@ -455,11 +455,11 @@
       <table class="matrix">
         <thead><tr><th style="width:20%;">Área Técnica</th><th>Padrões &amp; Tecnologias Aplicadas</th></tr></thead>
         <tbody>
-          <tr><td>📈 Escalabilidade</td><td>Containerização Docker, comunicação assíncrona via Kafka, Isolation Pattern, Aggregator Pattern.</td></tr>
-          <tr><td>⚡ Desempenho</td><td>Arquitetura Event-Driven (EDA), CQRS (Read Model Redis), Cache-Aside, latência &lt; 30ms (P50).</td></tr>
-          <tr><td>🛡️ Confiabilidade</td><td>Circuit Breaker (Resilience4j), SAGA Orchestration, Event Sourcing (Audit Trail), Anti-Corruption Layer (ACL).</td></tr>
-          <tr><td>🚀 Deployment</td><td>Esteira CI/CD (GitHub Actions), imutabilidade Docker, Feature Flags com hot-reload (Redis).</td></tr>
-          <tr><td>🔒 Segurança &amp; Obs.</td><td>Device Fingerprinting, Audit Logging imutável, observabilidade com Prometheus &amp; Grafana.</td></tr>
+          <tr><td>• Escalabilidade</td><td>Containerização Docker, comunicação assíncrona via Kafka, Isolation Pattern, Aggregator Pattern.</td></tr>
+          <tr><td>• Desempenho</td><td>Arquitetura Event-Driven (EDA), CQRS (Read Model Redis), Cache-Aside, latência &lt; 30ms (P50).</td></tr>
+          <tr><td>• Confiabilidade</td><td>Circuit Breaker (Resilience4j), SAGA Orchestration, Event Sourcing (Audit Trail), Anti-Corruption Layer (ACL).</td></tr>
+          <tr><td>• Deployment</td><td>Esteira CI/CD (GitHub Actions), imutabilidade Docker, Feature Flags com hot-reload (Redis).</td></tr>
+          <tr><td>• Segurança &amp; Obs.</td><td>Device Fingerprinting, Audit Logging imutável, observabilidade com Prometheus &amp; Grafana.</td></tr>
         </tbody>
       </table>
     </div>
@@ -649,9 +649,9 @@
     <h1 class="title" style="text-align:center;">Conclusão</h1>
     </br>
     <ul class="deliv-list">
-      <li>✅ Sistema distribuído completo e containerizado em Docker Compose.</li>
-      <li>✅ Pipeline CI/CD automatizada no GitHub Actions com status verde.</li>
-      <li>✅ Repositório público com histórico de commits detalhado.</li>
+      <li>• Sistema distribuído completo e containerizado em Docker Compose.</li>
+      <li>• Pipeline CI/CD automatizada no GitHub Actions com status verde.</li>
+      <li>• Repositório público com histórico de commits detalhado.</li>
     </ul>
     </br>
     <a class="repo-link" href="https://github.com/barbaraalvx/risk-scoring-engine" target="_blank" rel="noopener">github.com/barbaraalvx/risk-scoring-engine</a>
