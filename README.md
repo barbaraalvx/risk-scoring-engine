@@ -115,7 +115,9 @@ Para o relatório detalhado com metodologias e análises, consulte [docs/reports
 
 ---
 
-### 📹 Apresentações e Entregas
+### 📁 Entregas e Documentação
 * Projeto 01 (26/06): Definição de Tema
-* Projeto 02 (10/07): Documentação Inicial & Arquitetura -> [Link do Videocast 1]
-* Projeto 03 (07/08): Documentação Final & Solução Completa -> [Link do Videocast Final]
+* Projeto 02 (10/07): [Documentação Inicial & Arquitetura](docs/Documenta%C3%A7%C3%A3o%20Inicial%20-%20Projeto%2002.pdf)
+* Projeto 03 (07/08): [Documentação Final & Solução Completa](docs/presentation/presentation.html) (pasta `docs/` completa + apresentação interativa)
+
+
