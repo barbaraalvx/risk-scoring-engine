@@ -1,5 +1,6 @@
 package com.antifraude.riskscoring.service;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ import com.antifraude.riskscoring.controller.dto.QuarantineHistoryView;
  */
 @Service
 public class QuarantineIntegrationService {
+
+    private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(2);
 
     private final WebClient webClient;
 
@@ -41,6 +44,7 @@ public class QuarantineIntegrationService {
                 .uri("/quarantine")
                 .retrieve()
                 .bodyToMono(List.class)
+                .timeout(REQUEST_TIMEOUT)
                 .onErrorReturn(List.of())
                 .block();
 

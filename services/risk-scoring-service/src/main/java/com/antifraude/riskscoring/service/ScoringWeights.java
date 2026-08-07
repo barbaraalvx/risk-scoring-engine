@@ -3,6 +3,11 @@ package com.antifraude.riskscoring.service;
 /**
  * Value Object imutável contendo os pesos das regras de scoring e limiar de quarentena (Feature Flags).
  *
+ * <p>As flags booleanas usam {@link Boolean} (e não {@code boolean}) de propósito: registros salvos no
+ * Redis antes da introdução de um novo campo não terão essa chave no JSON, e o construtor compacto
+ * abaixo trata a ausência ({@code null}) como fail-safe habilitado, em vez de desabilitar a regra
+ * silenciosamente após o deploy.</p>
+ *
  * @param deviceWeight            Peso da regra de Device Fingerprint (default 0.25).
  * @param velocityWeight          Peso da regra de Velocidade de Ações (default 0.25).
  * @param patternWeight           Peso da regra de Padrão de Escolhas (default 0.25).
@@ -21,12 +26,25 @@ public record ScoringWeights(
         double patternWeight,
         double multiAccountWeight,
         double quarantineThreshold,
-        boolean deviceRuleEnabled,
-        boolean velocityRuleEnabled,
-        boolean patternRuleEnabled,
-        boolean multiAccountRuleEnabled,
-        boolean quarantineEnabled,
-        boolean adminMonitoringEnabled) {
+        Boolean deviceRuleEnabled,
+        Boolean velocityRuleEnabled,
+        Boolean patternRuleEnabled,
+        Boolean multiAccountRuleEnabled,
+        Boolean quarantineEnabled,
+        Boolean adminMonitoringEnabled) {
+
+    /**
+     * Construtor compacto que aplica o fallback fail-safe (habilitado) às flags booleanas ausentes,
+     * cobrindo o caso de JSON legado no Redis sem os campos mais recentes.
+     */
+    public ScoringWeights {
+        deviceRuleEnabled = deviceRuleEnabled == null ? true : deviceRuleEnabled;
+        velocityRuleEnabled = velocityRuleEnabled == null ? true : velocityRuleEnabled;
+        patternRuleEnabled = patternRuleEnabled == null ? true : patternRuleEnabled;
+        multiAccountRuleEnabled = multiAccountRuleEnabled == null ? true : multiAccountRuleEnabled;
+        quarantineEnabled = quarantineEnabled == null ? true : quarantineEnabled;
+        adminMonitoringEnabled = adminMonitoringEnabled == null ? true : adminMonitoringEnabled;
+    }
 
     /**
      * Retorna os pesos padrão fail-safe.

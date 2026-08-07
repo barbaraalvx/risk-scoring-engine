@@ -47,13 +47,6 @@ public interface PlayerScoreRepository extends JpaRepository<PlayerScoreRecord, 
     long countActionsSince(@Param("playerId") String playerId, @Param("since") Instant since);
 
     /**
-     * Conta quantos registros de score foram avaliados até o momento.
-     *
-     * @return Total de registros processados.
-     */
-    long count();
-
-    /**
      * Conta quantos registros de score dispararam quarentena.
      *
      * @return Total de registros com quarentena acionada.

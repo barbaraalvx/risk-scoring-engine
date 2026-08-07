@@ -117,6 +117,10 @@ public class ScoreController {
     @GetMapping("/admin/dashboard")
     public AdminDashboardView getAdminDashboard() {
         ScoringWeights weights = weightsService.getWeights();
+        if (!weights.adminMonitoringEnabled()) {
+            return new AdminDashboardView(weights, 0L, 0L, List.of(), List.of());
+        }
+
         long totalScores = repository.count();
         long quarantinedScores = repository.countByQuarantineTriggeredTrue();
         List<RecentScoreSignalView> recentSignals = repository.findTop10ByOrderByCalculatedAtDesc().stream()
